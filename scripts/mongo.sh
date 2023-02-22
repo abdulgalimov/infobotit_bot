@@ -1,0 +1,1 @@
+docker-compose exec mongo mongosh -u infobot -p infobot

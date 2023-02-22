@@ -11,7 +11,7 @@ export class EntityDB implements IEntity {
   @Prop({ unique: true })
   id: number;
 
-  @Prop()
+  @Prop({ unique: true })
   title: string;
 
   @Prop({ type: Object })
@@ -23,3 +23,13 @@ export class EntityDB implements IEntity {
 
 export type EntityDocumentDB = HydratedDocument<EntityDB>;
 export const EntitySchemaDB = SchemaFactory.createForClass(EntityDB);
+
+EntitySchemaDB.index(
+  {
+    'chat.id': 1,
+  },
+  {
+    name: 'by_chat_id',
+    sparse: true,
+  },
+);

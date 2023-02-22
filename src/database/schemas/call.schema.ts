@@ -44,3 +44,13 @@ export class CallDB implements ICall {
 
 export type CallDocumentDB = HydratedDocument<CallDB>;
 export const CallSchemaDB = SchemaFactory.createForClass(CallDB);
+
+CallSchemaDB.index(
+  {
+    createdAt: 1,
+    phone: 1,
+    entityId: 1,
+    status: 1,
+  },
+  { name: 'last_calls' },
+);

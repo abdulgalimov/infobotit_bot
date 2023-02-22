@@ -46,9 +46,15 @@ export class CallManager extends BaseManager<CallDocumentDB> {
   }
 
   async findLastAnswered(entityIds: number[], phone: string) {
+    const date = new Date();
+    date.setDate(date.getDate() - 2);
+
     return this.model.find({
-      entityId: entityIds,
+      createdAt: {
+        $gte: date,
+      },
       phone,
+      entityId: entityIds,
       status: CallStatus.ANSWERED,
     });
   }
