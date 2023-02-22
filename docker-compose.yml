@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  app:
+    restart: always
+    container_name: infobot-app
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile
+    environment:
+      IN_DOCKER: true
+    ports:
+      - '3002:3002'
+    networks:
+      - app_net
+    depends_on:
+      - mongo
+    volumes:
+      - ./volumes/app/files:/app/files
+
+  mongo:
+    image: mongo
+    restart: always
+    container_name: infobot-mongodb
+    ports:
+      - 27021:27017
+    environment:
+      MONGO_INITDB_DATABASE: infobot
+      MONGO_INITDB_ROOT_USERNAME: infobot
+      MONGO_INITDB_ROOT_PASSWORD: infobot
+    volumes:
+      - ./volumes/mongo/entrypoint:/docker-entrypoint-initdb.d
+      - ./volumes/mongo/db:/data/db
+      - ./volumes/mongo/config:/data/configdb
+    networks:
+      - app_net
+
+volumes:
+  mongodb:
+  mongoconfig:
+
+networks:
+  app_net:
+    driver: bridge

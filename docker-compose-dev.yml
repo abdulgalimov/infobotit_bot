@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  app:
+    restart: always
+    container_name: app
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile-dev
+    command: "nodemon apps/server/src/main.ts"
+    volumes:
+      - './apps:/app/apps'
+      - ./volumes/app/files:/app/files
+    environment:
+      IN_DOCKER: true
+    ports:
+      - '3000:3000'
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    driver: bridge

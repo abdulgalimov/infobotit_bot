@@ -1,0 +1,11 @@
+FROM node:16-alpine
+
+WORKDIR /app
+
+COPY ./package.json ./package-lock.json ./tsconfig.build.json ./tsconfig.json ./.docker.env ./
+COPY ./config ./config
+
+RUN npm install
+
+RUN npm install -g nodemon
+

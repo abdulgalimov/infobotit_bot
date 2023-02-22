@@ -1,0 +1,57 @@
+import * as dotenv from 'dotenv';
+import * as process from 'process';
+import { ApiConfig, Config } from './types';
+
+function loadEnv() {
+  const isTesting = process.env.TS_JEST === '1';
+  let filename;
+  if (isTesting) {
+    filename = '.test.env';
+  } else if (process.env.IN_DOCKER === 'true') {
+    filename = '.docker.env';
+  } else {
+    filename = '.run.env';
+  }
+  const { parsed } = dotenv.config({
+    path: filename,
+  });
+  if (!parsed) {
+    throw new Error('invalid env parsed');
+  }
+
+  return {
+    ...parsed,
+    isTesting,
+  };
+}
+const env = loadEnv();
+
+function loadAdminUsers(): number[] {
+  if (!env['ADMIN_USERS']) return [];
+  return env['ADMIN_USERS']
+    .split(',')
+    .map((item) => +item)
+    .filter((id) => !!id);
+}
+
+function loadApiConfig(): ApiConfig {
+  return {
+    url: env['API_URL'],
+    username: env['API_USERNAME'],
+    password: env['API_PASSWORD'],
+    version: env['API_VERSION'],
+    port: env['API_PORT'],
+    callbackUrl: env['API_CALLBACK_URL'],
+    allowedIP: env['API_ALLOWED_IP'],
+  };
+}
+
+export function loadConfig(): Config {
+  return {
+    telegramToken: env['TELEGRAM_TOKEN'],
+    mongoUri: env['MONGO_URI'],
+    jwtSecret: env['JWT_SECRET'],
+    adminUsers: loadAdminUsers(),
+    api: loadApiConfig(),
+  };
+}
