@@ -1,1 +1,1 @@
-docker-compose exec mongo mongosh -u infobot -p infobot
+docker-compose exec mongo mongosh --username infobot --password infobot
