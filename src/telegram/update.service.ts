@@ -41,7 +41,7 @@ export class UpdateService {
   }
 
   @Hears(/^!org\s+(?<orgId>\d+)/)
-  async connectEntity(@Ctx() ctx) {
+  async connectOrg(@Ctx() ctx) {
     if (!ctx.user.isAdmin) return;
 
     const orgId = +ctx.match.groups.orgId;
@@ -63,13 +63,13 @@ export class UpdateService {
     const chat = ctx.update.message.chat;
     if (!chat) return;
 
-    const entities = await this.orgService.findAllByChat(chat.id);
-    if (!entities.length) {
-      console.error(`entities not found for chat ${chat.id}`);
+    const orgs = await this.orgService.findAllByChat(chat.id);
+    if (!orgs.length) {
+      console.error(`orgs not found for chat ${chat.id}`);
       return;
     }
 
-    const ids = entities.map((org) => org.id);
+    const ids = orgs.map((org) => org.id);
 
     const calls = await this.cdrService.findLastAnswered(ids, phone);
     await Promise.all(calls.map((call) => this.sendCallToChat(chat, call)));

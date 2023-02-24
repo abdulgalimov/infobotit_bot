@@ -22,31 +22,31 @@ export class ApiController {
     private readonly orgService: OrgService,
   ) {}
 
-  @Post('entities')
+  @Post('orgs')
   @ApiBearerAuth('JWT')
   @UseGuards(JwtAuthGuard)
   @ApiBody({
     type: CreateOrgDto,
   })
-  async createEntity(@Request() req: InputRequest, @Body() body: CreateOrgDto) {
+  async createOrg(@Request() req: InputRequest, @Body() body: CreateOrgDto) {
     return this.orgService.create(req, body);
   }
 
-  @Get('entities')
+  @Get('orgs')
   @ApiBearerAuth('JWT')
   @UseGuards(JwtAuthGuard)
-  async getEntitiesList() {
+  async getOrgsList() {
     return this.orgService.getList();
   }
 
-  @Delete('entities/:id')
+  @Delete('orgs/:id')
   @ApiBearerAuth('JWT')
   @ApiParam({
     name: 'id',
     type: 'number',
   })
   @UseGuards(JwtAuthGuard)
-  async deleteEntity(@Param() params) {
+  async deleteOrg(@Param() params) {
     return this.orgService.delete(+params.id);
   }
 
