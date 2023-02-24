@@ -3,12 +3,12 @@ import { CallStatus, CallType } from '../constants';
 export interface ICdr {
   id: number;
   orgId: number;
-  phone: string;
+  customerId: number;
   type: CallType;
   status: CallStatus;
   callId: string;
   timeStart: Date;
-  callDuration: number;
+  waitDuration: number;
   talkDuration: number;
   recording: string;
 }

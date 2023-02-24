@@ -2,10 +2,11 @@ import { Command, Ctx, Start, Update, Hears } from 'nestjs-telegraf';
 import { Inject } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import { NotificationService } from './notification.service';
-import { ICdr, IChat } from '../types';
+import { ICdr, IChat, ICustomer, IOrg } from '../types';
 import { It005ApiService } from '../it005/it005.api';
 import { OrgService } from '../database/services/org.service';
 import { CdrService } from '../database/services/cdr.service';
+import { CustomerService } from '../database/services/customer.service';
 
 @Update()
 export class UpdateService {
@@ -17,6 +18,9 @@ export class UpdateService {
 
   @Inject(CdrService)
   private cdrService: CdrService;
+
+  @Inject(CustomerService)
+  private customerService: CustomerService;
 
   @Inject(NotificationService)
   private notificationService: NotificationService;
@@ -69,17 +73,30 @@ export class UpdateService {
       return;
     }
 
-    const ids = orgs.map((org) => org.id);
-
-    const calls = await this.cdrService.findLastAnswered(ids, phone);
-    await Promise.all(calls.map((call) => this.sendCallToChat(chat, call)));
+    await Promise.all(orgs.map((org) => this.findCallsInOrg(chat, org, phone)));
   }
 
-  async sendCallToChat(chat: IChat, call: ICdr) {
+  private async findCallsInOrg(chat: IChat, org: IOrg, phone: string) {
+    const customer: ICustomer = await this.customerService.create(
+      org.id,
+      phone,
+    );
+    const calls = await this.cdrService.findLastAnswered(customer.orgId);
+    await Promise.all(
+      calls.map((call) => this.sendCallToChat(chat, call, customer)),
+    );
+  }
+
+  async sendCallToChat(chat: IChat, call: ICdr, customer: ICustomer) {
     const downloadUrl: string = await this.it005ApiService.getDownloadUrl(
       call.recording,
     );
 
-    await this.notificationService.sendCallToChat(chat, call, downloadUrl);
+    await this.notificationService.sendCallToChat(
+      chat,
+      call,
+      customer,
+      downloadUrl,
+    );
   }
 }

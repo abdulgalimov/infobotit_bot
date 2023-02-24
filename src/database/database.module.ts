@@ -10,6 +10,8 @@ import { NotificationEntity } from './entities/notification.entity';
 import { UserEntity } from './entities/user.entity';
 import { OrgEntity } from './entities/org.entity';
 import { CdrEntity } from './entities/cdr.entity';
+import { CustomerEntity } from './entities/customer.entity';
+import { CustomerService } from './services/customer.service';
 
 @Global()
 @Module({
@@ -26,7 +28,13 @@ import { CdrEntity } from './entities/cdr.entity';
           username: 'infobot',
           password: 'infobot',
           database: 'infobot',
-          entities: [NotificationEntity, UserEntity, OrgEntity, CdrEntity],
+          entities: [
+            NotificationEntity,
+            UserEntity,
+            OrgEntity,
+            CdrEntity,
+            CustomerEntity,
+          ],
           synchronize: true,
         };
       },
@@ -36,9 +44,22 @@ import { CdrEntity } from './entities/cdr.entity';
       UserEntity,
       OrgEntity,
       CdrEntity,
+      CustomerEntity,
     ]),
   ],
-  providers: [NotificationService, UserService, OrgService, CdrService],
-  exports: [NotificationService, UserService, OrgService, CdrService],
+  providers: [
+    NotificationService,
+    UserService,
+    OrgService,
+    CdrService,
+    CustomerService,
+  ],
+  exports: [
+    NotificationService,
+    UserService,
+    OrgService,
+    CdrService,
+    CustomerService,
+  ],
 })
 export class DatabaseModule {}

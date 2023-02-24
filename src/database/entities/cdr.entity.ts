@@ -1,8 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { CallStatus, CallType } from '../../types';
+import { CallStatus, CallType, ICdr } from '../../types';
 
 @Entity({ name: 'cdrs' })
-export class CdrEntity {
+export class CdrEntity implements ICdr {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -10,7 +10,7 @@ export class CdrEntity {
   orgId: number;
 
   @Column()
-  phone: string;
+  customerId: number;
 
   @Column()
   type: CallType;
@@ -25,7 +25,7 @@ export class CdrEntity {
   timeStart: Date;
 
   @Column()
-  callDuration: number;
+  waitDuration: number;
 
   @Column()
   talkDuration: number;

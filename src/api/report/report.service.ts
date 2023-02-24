@@ -3,15 +3,19 @@ import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as readline from 'readline';
 import { extractOrgTitle, normalizePhone, timeout } from './utils';
-import { CallStatus, CallType, ICdr } from '../../types';
+import { CallStatus, CallType } from '../../types';
 import { NotificationService } from '../../telegram/notification.service';
 import { OrgService } from '../../database/services/org.service';
 import { CdrService } from '../../database/services/cdr.service';
+import { CustomerService } from '../../database/services/customer.service';
 
 @Injectable()
 export class ReportService {
   @Inject(OrgService)
   private orgService: OrgService;
+
+  @Inject(CustomerService)
+  private customerService: CustomerService;
 
   @Inject(CdrService)
   private cdrService: CdrService;
@@ -91,19 +95,16 @@ export class ReportService {
       return;
     }
 
-    const call: ICdr = await this.cdrService.create(
-      org.id,
-      userPhone,
-      type,
-      body,
-    );
+    const customer = await this.customerService.create(org.id, userPhone);
+
+    await this.cdrService.create(org.id, customer.id, type, body);
 
     if (status === CallStatus.NO_ANSWER && type === CallType.Inbound) {
-      await this.notificationService.sendMissingCall(org, call);
+      await this.notificationService.sendMissingCall(org, customer);
     }
 
     if (status === CallStatus.ANSWERED) {
-      await this.notificationService.removeMissingCall(org, call);
+      await this.notificationService.removeMissingCall(org, customer);
     }
   }
 
