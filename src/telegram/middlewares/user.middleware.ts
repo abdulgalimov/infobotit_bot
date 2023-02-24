@@ -1,9 +1,9 @@
-import { UserManager } from '../../database/managers/user.manager';
+import { UserService } from '../../database/services/user.service';
 
-export const userMiddleware = (users: UserManager) => {
+export const userMiddleware = (userService: UserService) => {
   return async (ctx, next) => {
     if (ctx.from) {
-      ctx.user = await users.getFrom(ctx.from);
+      ctx.user = await userService.getFrom(ctx.from);
     }
 
     return next()

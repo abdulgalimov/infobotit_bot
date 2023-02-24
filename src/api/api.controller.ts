@@ -11,9 +11,8 @@ import {
 import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ReportService } from './report';
 import { EntityService } from './entity.service';
-import { InputRequest } from '../types';
+import { CreateEntityDto, InputRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CreateEntityDto } from '../types/dto';
 
 @ApiTags('Api')
 @Controller('api')

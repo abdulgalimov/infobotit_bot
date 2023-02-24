@@ -8,10 +8,16 @@ export interface ApiConfig {
   allowedIP: string;
 }
 
+export interface PgConfig {
+  host: string;
+  port: number;
+}
+
 export interface Config {
   telegramToken: string;
   mongoUri: string;
   jwtSecret: string;
   adminUsers: number[];
   api: ApiConfig;
+  pg: PgConfig;
 }

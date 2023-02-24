@@ -26,7 +26,7 @@ export class EntityManager extends BaseManager<EntityDocumentDB> {
   }
 
   async delete(id: number) {
-    return this.model.deleteOne({ id });
+    await this.model.deleteOne({ id });
   }
 
   async findByTitle(title: string) {

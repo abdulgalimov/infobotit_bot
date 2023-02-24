@@ -6,6 +6,7 @@ import { CallManager, EntityManager } from '../../database/managers';
 import { extractEntityTitle, normalizePhone, timeout } from './utils';
 import { CallStatus, CallType, ICall } from '../../types';
 import { NotificationService } from '../../telegram/notification.service';
+import { StatService } from '../../database/services/stat.service';
 
 @Injectable()
 export class ReportService {
@@ -18,8 +19,11 @@ export class ReportService {
   @Inject(NotificationService)
   private notificationService: NotificationService;
 
+  @Inject(StatService)
+  private statService: StatService;
+
   constructor() {
-    //this.readLog();
+    this.readLog();
   }
 
   async readLog() {
@@ -40,7 +44,7 @@ export class ReportService {
   async newReport(body) {
     await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
 
-    await this.handleReport(body);
+    // await this.handleReport(body);
   }
 
   async handleReport(body) {
@@ -100,6 +104,12 @@ export class ReportService {
     if (status === CallStatus.NO_ANSWER && type === CallType.Inbound) {
       await this.notificationService.sendMissingCall(entity, call);
     }
+
+    if (status === CallStatus.ANSWERED) {
+      await this.notificationService.removeMissingCall(entity, call);
+    }
+
+    await this.statService.create(entity.id, userPhone, call);
   }
 
   async callStatusHandler(body) {

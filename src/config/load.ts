@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import * as process from 'process';
-import { ApiConfig, Config } from './types';
+import { ApiConfig, Config, PgConfig } from './types';
 
 function loadEnv() {
   const isTesting = process.env.TS_JEST === '1';
@@ -46,6 +46,13 @@ function loadApiConfig(): ApiConfig {
   };
 }
 
+function loadPgConfig(): PgConfig {
+  return {
+    host: env['PG_HOST'],
+    port: env['PG_PORT'],
+  };
+}
+
 export function loadConfig(): Config {
   return {
     telegramToken: env['TELEGRAM_TOKEN'],
@@ -53,5 +60,6 @@ export function loadConfig(): Config {
     jwtSecret: env['JWT_SECRET'],
     adminUsers: loadAdminUsers(),
     api: loadApiConfig(),
+    pg: loadPgConfig(),
   };
 }

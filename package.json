@@ -30,14 +30,17 @@
     "@nestjs/passport": "^9.0.3",
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/swagger": "^6.2.1",
+    "@nestjs/typeorm": "^9.0.1",
     "moment": "^2.29.4",
     "mongoose": "^6.9.3",
     "nestjs-telegraf": "^2.6.3",
     "passport-jwt": "^4.0.1",
+    "pg": "^8.9.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
-    "telegraf": "^4.11.2"
+    "telegraf": "^4.11.2",
+    "typeorm": "^0.3.12"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

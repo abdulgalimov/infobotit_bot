@@ -35,6 +35,33 @@ services:
     networks:
       - app_net
 
+  postgres:
+    image: postgres:15.2
+    restart: always
+    container_name: infobot-postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: infobot
+      POSTGRES_USER: infobot
+      POSTGRES_PASSWORD: infobot
+    volumes:
+      - ./volumes/postgres/entrypoint:/docker-entrypoint-initdb.d
+      - ./volumes/postgres/data:/var/lib/postgresql/data
+    networks:
+      - app_net
+  grafana:
+    image: grafana/grafana:9.3.6
+    container_name: infobot-grafana
+    ports:
+      - 3001:3000
+    restart: unless-stopped
+    volumes:
+      - ./volumes/grafana:/var/lib/grafana
+    networks:
+      - app_net
+    user: ":"
+
 volumes:
   mongodb:
   mongoconfig:
