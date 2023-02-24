@@ -1,7 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { IEntity } from '../../types';
 
 @Entity({ name: 'orgs' })
-export class UserEntity {
+export class OrgEntity implements IEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -9,5 +10,6 @@ export class UserEntity {
   title: string;
 
   @Column()
+  @Index()
   chatId: number;
 }

@@ -2,19 +2,20 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as readline from 'readline';
-import { CallManager, EntityManager } from '../../database/managers';
 import { extractEntityTitle, normalizePhone, timeout } from './utils';
 import { CallStatus, CallType, ICall } from '../../types';
 import { NotificationService } from '../../telegram/notification.service';
 import { StatService } from '../../database/services/stat.service';
+import { OrgService } from '../../database/services/org.service';
+import { CdrService } from '../../database/services/cdr.service';
 
 @Injectable()
 export class ReportService {
-  @Inject(EntityManager)
-  private entityManager: EntityManager;
+  @Inject(OrgService)
+  private orgService: OrgService;
 
-  @Inject(CallManager)
-  private callManager: CallManager;
+  @Inject(CdrService)
+  private cdrService: CdrService;
 
   @Inject(NotificationService)
   private notificationService: NotificationService;
@@ -88,13 +89,13 @@ export class ReportService {
     }
 
     const title = extractEntityTitle(entitySourceName);
-    const entity = await this.entityManager.findByTitle(title);
+    const entity = await this.orgService.findByTitle(title);
     if (!entity) {
       console.error(`entity ${title} not found`);
       return;
     }
 
-    const call: ICall = await this.callManager.create(
+    const call: ICall = await this.cdrService.create(
       entity.id,
       userPhone,
       type,

@@ -1,8 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
-import { CallDB, CallSchemaDB, EntityDB, EntitySchemaDB } from './schemas';
-import { EntityManager, CallManager } from './managers';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StatEntity } from './entities/stat.entity';
 import { StatService } from './services/stat.service';
@@ -11,34 +8,14 @@ import { NotificationService } from './services/notification.service';
 import { PgConfig } from '../config';
 import { UserEntity } from './entities/user.entity';
 import { UserService } from './services/user.service';
+import { OrgEntity } from './entities/org.entity';
+import { OrgService } from './services/org.service';
+import { CdrEntity } from './entities/cdr.entity';
+import { CdrService } from './services/cdr.service';
 
 @Global()
 @Module({
   imports: [
-    MongooseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const mongoUri = config.getOrThrow('mongoUri');
-        return {
-          uri: mongoUri,
-          dbName: 'infobot',
-          user: 'infobot',
-          pass: 'infobot',
-          // authSource: 'infobot',
-          autoIndex: true,
-        };
-      },
-    }),
-    MongooseModule.forFeature([
-      {
-        name: EntityDB.name,
-        schema: EntitySchemaDB,
-      },
-      {
-        name: CallDB.name,
-        schema: CallSchemaDB,
-      },
-    ]),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
@@ -51,26 +28,38 @@ import { UserService } from './services/user.service';
           username: 'infobot',
           password: 'infobot',
           database: 'infobot',
-          entities: [StatEntity, NotificationEntity, UserEntity],
+          entities: [
+            StatEntity,
+            NotificationEntity,
+            UserEntity,
+            OrgEntity,
+            CdrEntity,
+          ],
           synchronize: true,
         };
       },
     }),
-    TypeOrmModule.forFeature([StatEntity, NotificationEntity, UserEntity]),
+    TypeOrmModule.forFeature([
+      StatEntity,
+      NotificationEntity,
+      UserEntity,
+      OrgEntity,
+      CdrEntity,
+    ]),
   ],
   providers: [
-    EntityManager,
-    CallManager,
     StatService,
     NotificationService,
     UserService,
+    OrgService,
+    CdrService,
   ],
   exports: [
-    EntityManager,
-    CallManager,
     StatService,
     NotificationService,
     UserService,
+    OrgService,
+    CdrService,
   ],
 })
 export class DatabaseModule {}

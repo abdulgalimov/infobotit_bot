@@ -1,23 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InputRequest } from '../types';
-import { EntityManager } from '../database/managers/entity.manager';
-import { CreateEntityDto } from '../types/dto';
+import { CreateEntityDto } from '../types';
+import { OrgService } from '../database/services/org.service';
 
 @Injectable()
 export class EntityService {
-  @Inject(EntityManager)
-  private entityManager: EntityManager;
+  @Inject(OrgService)
+  private orgService: OrgService;
 
   public async create(req: InputRequest, body: CreateEntityDto) {
     const { title } = body;
-    const entity = await this.entityManager.create(title);
+    const org = await this.orgService.create(title);
     return {
-      entity,
+      org,
     };
   }
 
   public async getList() {
-    const entities = await this.entityManager.getAll();
+    const entities = await this.orgService.getAll();
     return {
       entities,
     };
@@ -27,7 +27,7 @@ export class EntityService {
     if (!id) {
       throw new Error('invalid id');
     }
-    await this.entityManager.delete(id);
+    await this.orgService.delete(id);
     return {
       ok: true,
     };

@@ -1,21 +1,22 @@
 import { Command, Ctx, Start, Update, Hears } from 'nestjs-telegraf';
 import { Inject } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
-import { CallManager, EntityManager } from '../database/managers';
 import { NotificationService } from './notification.service';
 import { ICall, IChat } from '../types';
 import { It005ApiService } from '../it005/it005.api';
+import { OrgService } from '../database/services/org.service';
+import { CdrService } from '../database/services/cdr.service';
 
 @Update()
 export class UpdateService {
   @Inject(AuthService)
   private authService: AuthService;
 
-  @Inject(EntityManager)
-  private entityManager: EntityManager;
+  @Inject(OrgService)
+  private orgService: OrgService;
 
-  @Inject(CallManager)
-  private callManager: CallManager;
+  @Inject(CdrService)
+  private cdrService: CdrService;
 
   @Inject(NotificationService)
   private notificationService: NotificationService;
@@ -45,18 +46,13 @@ export class UpdateService {
 
     const entityId = +ctx.match.groups.entityId;
     const chat = ctx.update.message.chat;
-    const entity = await this.entityManager.findById(entityId);
+    const entity = await this.orgService.findById(entityId);
     if (!entity) {
       ctx.reply(`Организация ${entityId} не найдена`);
       return;
     }
 
-    await entity.updateOne({
-      chat: {
-        id: chat.id,
-        title: chat.title,
-      },
-    });
+    await this.orgService.updateChat(entity.id, chat.id);
 
     await ctx.reply(`Чат подключен к организации "${entity.title}"`);
   }
@@ -67,7 +63,7 @@ export class UpdateService {
     const chat = ctx.update.message.chat;
     if (!chat) return;
 
-    const entities = await this.entityManager.findAllByChat(chat.id);
+    const entities = await this.orgService.findAllByChat(chat.id);
     if (!entities.length) {
       console.error(`entities not found for chat ${chat.id}`);
       return;
@@ -75,7 +71,7 @@ export class UpdateService {
 
     const ids = entities.map((entity) => entity.id);
 
-    const calls = await this.callManager.findLastAnswered(ids, phone);
+    const calls = await this.cdrService.findLastAnswered(ids, phone);
     await Promise.all(calls.map((call) => this.sendCallToChat(chat, call)));
   }
 

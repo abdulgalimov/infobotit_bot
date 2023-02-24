@@ -1,7 +1,7 @@
 export interface IEntity {
   id: number;
   title: string;
-  chat?: IChat;
+  chatId?: number;
 }
 
 export interface IChat {

@@ -14,31 +14,31 @@ export class NotificationService {
   constructor(@InjectBot() private bot: Telegraf) {}
 
   public async sendMissingCall(entity: IEntity, call: ICall) {
-    if (!entity.chat) {
+    if (!entity.chatId) {
       //console.error(`Not found chat in entity ${entity.id}`);
       return;
     }
 
     const message = `${Icons.Phone} Пропущенный вызов: +7${call.phone}
 #missing`;
-    const result = await this.bot.telegram.sendMessage(entity.chat.id, message);
+    const result = await this.bot.telegram.sendMessage(entity.chatId, message);
 
     await this.notificationServiceDb.create(
       entity.id,
       call.phone,
-      entity.chat.id,
+      entity.chatId,
       result.message_id,
     );
   }
 
   public async removeMissingCall(entity: IEntity, call: ICall) {
-    if (!entity.chat) {
+    if (!entity.chatId) {
       return;
     }
 
     const notifications = await this.notificationServiceDb.findAll(
       call.phone,
-      entity.chat.id,
+      entity.chatId,
     );
     if (!notifications.length) return;
     await Promise.all(
