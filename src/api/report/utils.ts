@@ -9,10 +9,10 @@ export function normalizePhone(userPhone: string) {
   }
 }
 
-const entityTitleReg = /(?<title>[^_]+)(_(\d+))?/;
-export function extractEntityTitle(entitySourceName) {
-  entityTitleReg.lastIndex = 0;
-  const exec = entityTitleReg.exec(entitySourceName);
+const orgTitleReg = /(?<title>[^_]+)(_(\d+))?/;
+export function extractOrgTitle(orgSourceName) {
+  orgTitleReg.lastIndex = 0;
+  const exec = orgTitleReg.exec(orgSourceName);
   const { title } = exec.groups;
   return title;
 }

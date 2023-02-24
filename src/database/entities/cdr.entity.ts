@@ -1,13 +1,13 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { CallStatus, CallType, ICall } from '../../types';
+import { CallStatus, CallType } from '../../types';
 
 @Entity({ name: 'cdrs' })
-export class CdrEntity implements ICall {
+export class CdrEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  entityId: number;
+  orgId: number;
 
   @Column()
   phone: string;

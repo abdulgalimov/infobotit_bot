@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InputRequest } from '../types';
-import { CreateEntityDto } from '../types';
-import { OrgService } from '../database/services/org.service';
+import { CreateOrgDto } from '../types';
+import { OrgService as OrgServiceDb } from '../database/services/org.service';
 
 @Injectable()
-export class EntityService {
-  @Inject(OrgService)
-  private orgService: OrgService;
+export class OrgService {
+  @Inject(OrgServiceDb)
+  private orgService: OrgServiceDb;
 
-  public async create(req: InputRequest, body: CreateEntityDto) {
+  public async create(req: InputRequest, body: CreateOrgDto) {
     const { title } = body;
     const org = await this.orgService.create(title);
     return {
@@ -17,9 +17,9 @@ export class EntityService {
   }
 
   public async getList() {
-    const entities = await this.orgService.getAll();
+    const orgs = await this.orgService.getAll();
     return {
-      entities,
+      orgs,
     };
   }
 

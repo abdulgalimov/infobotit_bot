@@ -1,4 +1,4 @@
-export interface IEntity {
+export interface IOrg {
   id: number;
   title: string;
   chatId?: number;

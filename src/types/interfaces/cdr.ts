@@ -1,8 +1,8 @@
 import { CallStatus, CallType } from '../constants';
 
-export interface ICall {
+export interface ICdr {
   id: number;
-  entityId: number;
+  orgId: number;
   phone: string;
   type: CallType;
   status: CallStatus;

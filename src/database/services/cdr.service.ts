@@ -11,10 +11,10 @@ export class CdrService {
     private cdrRepository: Repository<CdrEntity>,
   ) {}
 
-  async create(entityId: number, phone: string, type: CallType, body: any) {
+  async create(orgId: number, phone: string, type: CallType, body: any) {
     const cdr = this.cdrRepository.create();
 
-    cdr.entityId = entityId;
+    cdr.orgId = orgId;
     cdr.phone = phone;
     cdr.type = type;
     cdr.status = body.status;
@@ -31,7 +31,7 @@ export class CdrService {
     return cdr;
   }
 
-  async findLastAnswered(entityIds: number[], phone: string) {
+  async findLastAnswered(orgIds: number[], phone: string) {
     const date = new Date();
     date.setDate(date.getDate() - 2);
 
@@ -39,7 +39,7 @@ export class CdrService {
       where: {
         createdAt: LessThan(date),
         phone,
-        entityId: In(entityIds),
+        orgId: In(orgIds),
         status: CallStatus.ANSWERED,
       },
     });

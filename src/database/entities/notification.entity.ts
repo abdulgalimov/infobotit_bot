@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { CallStatus, CallType } from '../../types';
 
 @Entity({ name: 'notifications' })
 export class NotificationEntity {
@@ -10,7 +9,7 @@ export class NotificationEntity {
   phone: string;
 
   @Column()
-  entityId: number;
+  orgId: number;
 
   @Column({ type: 'bigint' })
   chatId: number;

@@ -14,26 +14,10 @@ services:
     networks:
       - app_net
     depends_on:
-      - mongo
+      - postgres
     volumes:
       - ./volumes/app/files:/app/files
 
-  mongo:
-    image: mongo
-    restart: always
-    container_name: infobot-mongodb
-    ports:
-      - 27021:27017
-    environment:
-      MONGO_INITDB_DATABASE: infobot
-      MONGO_INITDB_ROOT_USERNAME: infobot
-      MONGO_INITDB_ROOT_PASSWORD: infobot
-    volumes:
-      - ./volumes/mongo/entrypoint:/docker-entrypoint-initdb.d
-      - ./volumes/mongo/db:/data/db
-      - ./volumes/mongo/config:/data/configdb
-    networks:
-      - app_net
 
   postgres:
     image: postgres:15.2
@@ -61,10 +45,6 @@ services:
     networks:
       - app_net
     user: ":"
-
-volumes:
-  mongodb:
-  mongoconfig:
 
 networks:
   app_net:

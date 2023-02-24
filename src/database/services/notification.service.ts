@@ -11,13 +11,13 @@ export class NotificationService {
   ) {}
 
   async create(
-    entityId: number,
+    orgId: number,
     phone: string,
     chatId: number,
     messageId: number,
   ) {
     const notification = this.notificationsRepository.create();
-    notification.entityId = entityId;
+    notification.orgId = orgId;
     notification.phone = phone;
     notification.chatId = chatId;
     notification.messageId = messageId;

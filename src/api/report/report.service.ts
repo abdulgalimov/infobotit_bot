@@ -2,10 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as readline from 'readline';
-import { extractEntityTitle, normalizePhone, timeout } from './utils';
-import { CallStatus, CallType, ICall } from '../../types';
+import { extractOrgTitle, normalizePhone, timeout } from './utils';
+import { CallStatus, CallType, ICdr } from '../../types';
 import { NotificationService } from '../../telegram/notification.service';
-import { StatService } from '../../database/services/stat.service';
 import { OrgService } from '../../database/services/org.service';
 import { CdrService } from '../../database/services/cdr.service';
 
@@ -19,9 +18,6 @@ export class ReportService {
 
   @Inject(NotificationService)
   private notificationService: NotificationService;
-
-  @Inject(StatService)
-  private statService: StatService;
 
   constructor() {
     this.readLog();
@@ -65,22 +61,22 @@ export class ReportService {
   async newCrdHandler(body) {
     const { type, dsttrcunkname, srctrunkname, callfrom, callto, status } =
       body;
-    let entitySourceName: string;
+    let orgSourceName: string;
     let isOut: number;
     let userPhone: string;
     switch (type) {
       case 'Inbound':
-        entitySourceName = srctrunkname;
+        orgSourceName = srctrunkname;
         isOut = 0;
         userPhone = callfrom;
         break;
       case 'Outbound':
-        entitySourceName = dsttrcunkname;
+        orgSourceName = dsttrcunkname;
         isOut = 1;
         userPhone = callto;
         break;
       default:
-        entitySourceName = '';
+        orgSourceName = '';
         break;
     }
 
@@ -88,29 +84,27 @@ export class ReportService {
       userPhone = normalizePhone(userPhone);
     }
 
-    const title = extractEntityTitle(entitySourceName);
-    const entity = await this.orgService.findByTitle(title);
-    if (!entity) {
-      console.error(`entity ${title} not found`);
+    const title = extractOrgTitle(orgSourceName);
+    const org = await this.orgService.findByTitle(title);
+    if (!org) {
+      console.error(`org ${title} not found`);
       return;
     }
 
-    const call: ICall = await this.cdrService.create(
-      entity.id,
+    const call: ICdr = await this.cdrService.create(
+      org.id,
       userPhone,
       type,
       body,
     );
 
     if (status === CallStatus.NO_ANSWER && type === CallType.Inbound) {
-      await this.notificationService.sendMissingCall(entity, call);
+      await this.notificationService.sendMissingCall(org, call);
     }
 
     if (status === CallStatus.ANSWERED) {
-      await this.notificationService.removeMissingCall(entity, call);
+      await this.notificationService.removeMissingCall(org, call);
     }
-
-    await this.statService.create(entity.id, userPhone, call);
   }
 
   async callStatusHandler(body) {

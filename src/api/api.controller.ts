@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ReportService } from './report';
-import { EntityService } from './entity.service';
-import { CreateEntityDto, InputRequest } from '../types';
+import { OrgService } from './org.service';
+import { CreateOrgDto, InputRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Api')
@@ -19,27 +19,24 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class ApiController {
   constructor(
     private readonly reportService: ReportService,
-    private readonly entityService: EntityService,
+    private readonly orgService: OrgService,
   ) {}
 
   @Post('entities')
   @ApiBearerAuth('JWT')
   @UseGuards(JwtAuthGuard)
   @ApiBody({
-    type: CreateEntityDto,
+    type: CreateOrgDto,
   })
-  async createEntity(
-    @Request() req: InputRequest,
-    @Body() body: CreateEntityDto,
-  ) {
-    return this.entityService.create(req, body);
+  async createEntity(@Request() req: InputRequest, @Body() body: CreateOrgDto) {
+    return this.orgService.create(req, body);
   }
 
   @Get('entities')
   @ApiBearerAuth('JWT')
   @UseGuards(JwtAuthGuard)
   async getEntitiesList() {
-    return this.entityService.getList();
+    return this.orgService.getList();
   }
 
   @Delete('entities/:id')
@@ -50,7 +47,7 @@ export class ApiController {
   })
   @UseGuards(JwtAuthGuard)
   async deleteEntity(@Param() params) {
-    return this.entityService.delete(+params.id);
+    return this.orgService.delete(+params.id);
   }
 
   @Post('report')

@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import * as moment from 'moment';
-import { ICall, IChat, Icons, IEntity } from '../types';
+import { ICdr, IChat, Icons, IOrg } from '../types';
 import { NotificationService as NotificationServiceDb } from '../database/services/notification.service';
 import { NotificationEntity } from '../database/entities/notification.entity';
 
@@ -13,32 +13,32 @@ export class NotificationService {
 
   constructor(@InjectBot() private bot: Telegraf) {}
 
-  public async sendMissingCall(entity: IEntity, call: ICall) {
-    if (!entity.chatId) {
-      //console.error(`Not found chat in entity ${entity.id}`);
+  public async sendMissingCall(org: IOrg, call: ICdr) {
+    if (!org.chatId) {
+      //console.error(`Not found chat in org ${org.id}`);
       return;
     }
 
     const message = `${Icons.Phone} Пропущенный вызов: +7${call.phone}
 #missing`;
-    const result = await this.bot.telegram.sendMessage(entity.chatId, message);
+    const result = await this.bot.telegram.sendMessage(org.chatId, message);
 
     await this.notificationServiceDb.create(
-      entity.id,
+      org.id,
       call.phone,
-      entity.chatId,
+      org.chatId,
       result.message_id,
     );
   }
 
-  public async removeMissingCall(entity: IEntity, call: ICall) {
-    if (!entity.chatId) {
+  public async removeMissingCall(org: IOrg, call: ICdr) {
+    if (!org.chatId) {
       return;
     }
 
     const notifications = await this.notificationServiceDb.findAll(
       call.phone,
-      entity.chatId,
+      org.chatId,
     );
     if (!notifications.length) return;
     await Promise.all(
@@ -58,7 +58,7 @@ export class NotificationService {
     } catch (err) {}
   }
 
-  public async sendCallToChat(chat: IChat, call: ICall, downloadUrl: string) {
+  public async sendCallToChat(chat: IChat, call: ICdr, downloadUrl: string) {
     const caption = `${Icons.Phone} +7${call.phone}
 ${Icons.Time} ${moment(call.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
 

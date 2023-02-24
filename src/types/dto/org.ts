@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IChat, IEntity } from '../interfaces';
+import { IChat, IOrg } from '../interfaces';
 
 export class ChatDto implements IChat {
   @ApiProperty()
@@ -9,7 +9,7 @@ export class ChatDto implements IChat {
   title: string;
 }
 
-export class EntityDto implements IEntity {
+export class OrgDto implements IOrg {
   @ApiProperty()
   id: number;
 
@@ -20,7 +20,7 @@ export class EntityDto implements IEntity {
   chat: ChatDto;
 }
 
-export class CreateEntityDto {
+export class CreateOrgDto {
   @ApiProperty()
   title: string;
 }

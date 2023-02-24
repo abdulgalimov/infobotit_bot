@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IEntity } from '../../types';
+import { IOrg } from '../../types';
 import { OrgEntity } from '../entities/org.entity';
 
 @Injectable()
@@ -42,7 +42,7 @@ export class OrgService {
     return this.orgRepository.findOne({ where: { id } });
   }
 
-  async findAllByChat(chatId: number): Promise<IEntity[]> {
+  async findAllByChat(chatId: number): Promise<IOrg[]> {
     return this.orgRepository.find({ where: { chatId } });
   }
 

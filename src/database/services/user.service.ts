@@ -1,8 +1,8 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import { UserEntity } from '../entities/user.entity';
 import { ConfigService } from '@nestjs/config';
+import { UserEntity } from '../entities/user.entity';
 
 @Injectable()
 export class UserService implements OnModuleInit {
