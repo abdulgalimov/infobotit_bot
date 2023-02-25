@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
     volumes:
-      - ./volumes/app/files:/app/files
+      - app:/app/files
 
   db:
     image: postgres:15.2
@@ -29,8 +29,7 @@ services:
       POSTGRES_USER: infobot
       POSTGRES_PASSWORD: infobot
     volumes:
-      - ./volumes/postgres/entrypoint:/docker-entrypoint-initdb.d
-      - ./volumes/postgres/data:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
     networks:
       - app_net
 
@@ -53,13 +52,16 @@ services:
     container_name: infobot-grafana
     ports:
       - 3001:3000
-    restart: unless-stopped
     volumes:
-      - ./volumes/grafana:/var/lib/grafana
+      - grafana:/var/lib/grafana
     networks:
       - app_net
-    user: ":"
 
 networks:
   app_net:
     driver: bridge
+
+volumes:
+  app:
+  db:
+  grafana:
