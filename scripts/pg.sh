@@ -1,1 +1,1 @@
-docker-compose exec db psql -U infobot -W
+docker compose exec db psql -U infobot -W

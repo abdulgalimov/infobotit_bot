@@ -43,7 +43,7 @@ export class ReportService {
   }
 
   async newReport(body) {
-    // console.log('newReport', body);
+    console.log('newReport', body);
     await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
 
     await this.handleReport(body);
