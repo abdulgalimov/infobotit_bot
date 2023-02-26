@@ -7,6 +7,7 @@ import { It005ApiService } from '../it005/it005.api';
 import { OrgService } from '../database/services/org.service';
 import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
+import { HeartbeatService } from '../it005/heartbeat.service';
 
 @Update()
 export class UpdateService {
@@ -28,14 +29,40 @@ export class UpdateService {
   @Inject(It005ApiService)
   private it005ApiService: It005ApiService;
 
+  @Inject(HeartbeatService)
+  private heartbeatService: HeartbeatService;
+
   @Start()
   async start(@Ctx() ctx) {
     console.log('start');
   }
 
-  @Command('apilogin')
+  @Command('api_login')
   async apiLogin(@Ctx() ctx) {
-    if (!ctx.user.isAdmin) return;
+    if (!ctx.user.isAdmin) {
+      await ctx.reply('Команда доступна только администратору');
+      return;
+    }
+
+    await this.it005ApiService.login();
+  }
+
+  @Command('api_heartbeat')
+  async apiHeartbeat(@Ctx() ctx) {
+    if (!ctx.user.isAdmin) {
+      await ctx.reply('Команда доступна только администратору');
+      return;
+    }
+
+    await this.heartbeatService.ping();
+  }
+
+  @Command('get_token')
+  async getToken(@Ctx() ctx) {
+    if (!ctx.user.isAdmin) {
+      await ctx.reply('Команда доступна только администратору');
+      return;
+    }
 
     const { access_token } = await this.authService.login(ctx.user);
 
@@ -65,6 +92,7 @@ export class UpdateService {
   async findCalls(@Ctx() ctx) {
     const { phone } = ctx.match.groups;
     const chat = ctx.update.message.chat;
+    console.log('findCalls', phone);
     if (!chat) return;
 
     const orgs = await this.orgService.findAllByChat(chat.id);
@@ -81,22 +109,16 @@ export class UpdateService {
       org.id,
       phone,
     );
-    const calls = await this.cdrService.findLastAnswered(customer.orgId);
+    const cdrs = await this.cdrService.findLastAnswered(customer.id);
+    if (!cdrs.length) {
+      await this.notificationService.sendCallsNotfound(chat, org, phone);
+    }
     await Promise.all(
-      calls.map((call) => this.sendCallToChat(chat, call, customer)),
+      cdrs.map((cdr) => this.sendCallToChat(chat, org, cdr, customer)),
     );
   }
 
-  async sendCallToChat(chat: IChat, call: ICdr, customer: ICustomer) {
-    const downloadUrl: string = await this.it005ApiService.getDownloadUrl(
-      call.recording,
-    );
-
-    await this.notificationService.sendCallToChat(
-      chat,
-      call,
-      customer,
-      downloadUrl,
-    );
+  async sendCallToChat(chat: IChat, org: IOrg, cdr: ICdr, customer: ICustomer) {
+    await this.notificationService.sendCallToChat(chat, org, cdr, customer);
   }
 }

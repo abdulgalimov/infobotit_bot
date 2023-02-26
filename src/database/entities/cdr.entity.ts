@@ -35,4 +35,7 @@ export class CdrEntity implements ICdr {
 
   @Column()
   createdAt: Date;
+
+  @Column({ default: '' })
+  telegramFileId: string;
 }

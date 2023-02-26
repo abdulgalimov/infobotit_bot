@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LessThan, Repository } from 'typeorm';
+import { Between, LessThan, Repository } from 'typeorm';
 import { CallStatus, CallType } from '../../types';
 import { CdrEntity } from '../entities/cdr.entity';
 
@@ -40,10 +40,21 @@ export class CdrService {
 
     return this.cdrRepository.find({
       where: {
-        createdAt: LessThan(date),
+        createdAt: Between(date, new Date()),
         customerId,
         status: CallStatus.ANSWERED,
       },
     });
+  }
+
+  async updateTelegramFileId(id: number, telegramFileId: string) {
+    await this.cdrRepository.update(
+      {
+        id,
+      },
+      {
+        telegramFileId,
+      },
+    );
   }
 }

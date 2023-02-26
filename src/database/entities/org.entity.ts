@@ -8,7 +8,9 @@ export class OrgEntity {
   @Column()
   title: string;
 
-  @Column()
+  @Column({
+    type: 'bigint',
+  })
   @Index()
   chatId: number;
 }
