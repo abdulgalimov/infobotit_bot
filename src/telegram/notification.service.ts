@@ -23,7 +23,7 @@ export class NotificationService {
 
   public async sendMissingCall(org: IOrg, customer: ICustomer) {
     if (!+org.chatId) {
-      //console.error(`Not found chat in org ${org.id}`);
+      console.error(`Not found chat in org ${org.id}`);
       return;
     }
 

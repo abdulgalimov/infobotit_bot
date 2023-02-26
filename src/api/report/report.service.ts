@@ -43,7 +43,6 @@ export class ReportService {
   }
 
   async newReport(body) {
-    console.log('newReport', body);
     await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
 
     await this.handleReport(body);
@@ -64,6 +63,7 @@ export class ReportService {
   }
 
   async newCrdHandler(body) {
+    console.log('new cdr', body);
     const { type, dsttrcunkname, srctrunkname, callfrom, callto, status } =
       body;
     let orgSourceName: string;
