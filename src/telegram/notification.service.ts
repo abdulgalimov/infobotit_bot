@@ -7,6 +7,7 @@ import { NotificationService as NotificationServiceDb } from '../database/servic
 import { NotificationEntity } from '../database/entities/notification.entity';
 import { CdrService } from '../database/services/cdr.service';
 import { It005ApiService } from '../it005/it005.api';
+import { CustomerService } from '../database/services/customer.service';
 
 @Injectable()
 export class NotificationService {
@@ -18,6 +19,12 @@ export class NotificationService {
 
   @Inject(It005ApiService)
   private it005ApiService: It005ApiService;
+
+  @Inject(CustomerService)
+  private customerService: CustomerService;
+
+  @Inject(CdrService)
+  private cdrService: CdrService;
 
   constructor(@InjectBot() private bot: Telegraf) {}
 
@@ -71,26 +78,56 @@ export class NotificationService {
     } catch (err) {}
   }
 
-  public async sendCallsNotfound(chat: IChat, org: IOrg, phone: string) {
-    const message = `Звонков с номером
+  public async findCallsInOrg(ctx, chat: IChat, org: IOrg, phone: string) {
+    const customer: ICustomer = await this.customerService.create(
+      org.id,
+      phone,
+    );
+
+    const cdrs = await this.cdrService.findLastAnswered(customer.id);
+    if (!cdrs.length) {
+      await this.sendCallsNotfound(ctx, org, phone);
+      return;
+    }
+
+    await ctx.reply(
+      `
+${orgView(org)}
+Найдено звонков: ${cdrs.length}
+Загрузка...`,
+      {
+        reply_to_message_id: ctx.update?.message?.message_id,
+      },
+    );
+
+    await Promise.all(
+      cdrs.map((cdr) => this.sendCallToChat(chat, org, cdr, customer)),
+    );
+  }
+
+  private async sendCallsNotfound(ctx, org: IOrg, phone: string) {
+    const message = `
+${orgView(org)}
+Звонков с номером
 <code>${phone}</code>
-в организации
-<code>${org.title}</code> 
 за последние 2 дня не найдено`;
-    await this.bot.telegram.sendMessage(chat.id, message, {
+
+    await ctx.reply(message, {
       parse_mode: 'HTML',
+      reply_to_message_id: ctx.update?.message?.message_id,
     });
   }
 
-  public async sendCallToChat(
+  private async sendCallToChat(
     chat: IChat,
     org: IOrg,
     cdr: ICdr,
     customer: ICustomer,
   ) {
-    const caption = `${Icons.Phone} +7${customer.phone}
-${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}
-${Icons.Org} ${org.title}`;
+    const caption = `
+${orgView(org)}
+${Icons.Phone} +7${customer.phone}
+${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
 
     if (cdr.telegramFileId) {
       await this.bot.telegram.sendAudio(chat.id, cdr.telegramFileId, {
@@ -117,4 +154,8 @@ ${Icons.Org} ${org.title}`;
       );
     }
   }
+}
+
+function orgView(org: IOrg) {
+  return `${Icons.Org} ${org.title}`;
 }

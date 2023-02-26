@@ -2,11 +2,8 @@ import { Command, Ctx, Start, Update, Hears } from 'nestjs-telegraf';
 import { Inject } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import { NotificationService } from './notification.service';
-import { ICdr, IChat, ICustomer, IOrg } from '../types';
 import { It005ApiService } from '../it005/it005.api';
 import { OrgService } from '../database/services/org.service';
-import { CdrService } from '../database/services/cdr.service';
-import { CustomerService } from '../database/services/customer.service';
 import { HeartbeatService } from '../it005/heartbeat.service';
 
 @Update()
@@ -16,12 +13,6 @@ export class UpdateService {
 
   @Inject(OrgService)
   private orgService: OrgService;
-
-  @Inject(CdrService)
-  private cdrService: CdrService;
-
-  @Inject(CustomerService)
-  private customerService: CustomerService;
 
   @Inject(NotificationService)
   private notificationService: NotificationService;
@@ -101,24 +92,8 @@ export class UpdateService {
       return;
     }
 
-    await Promise.all(orgs.map((org) => this.findCallsInOrg(chat, org, phone)));
-  }
-
-  private async findCallsInOrg(chat: IChat, org: IOrg, phone: string) {
-    const customer: ICustomer = await this.customerService.create(
-      org.id,
-      phone,
-    );
-    const cdrs = await this.cdrService.findLastAnswered(customer.id);
-    if (!cdrs.length) {
-      await this.notificationService.sendCallsNotfound(chat, org, phone);
+    for (const org of orgs) {
+      await this.notificationService.findCallsInOrg(ctx, chat, org, phone);
     }
-    await Promise.all(
-      cdrs.map((cdr) => this.sendCallToChat(chat, org, cdr, customer)),
-    );
-  }
-
-  async sendCallToChat(chat: IChat, org: IOrg, cdr: ICdr, customer: ICustomer) {
-    await this.notificationService.sendCallToChat(chat, org, cdr, customer);
   }
 }
