@@ -10,6 +10,7 @@ export class OrgEntity {
 
   @Column({
     type: 'bigint',
+    default: '0',
   })
   @Index()
   chatId: number;
