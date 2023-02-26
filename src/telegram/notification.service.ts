@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import * as moment from 'moment';
-import { ICdr, IChat, Icons, ICustomer, IOrg } from '../types';
+import { CallType, ICdr, IChat, Icons, ICustomer, IOrg } from '../types';
 import { NotificationService as NotificationServiceDb } from '../database/services/notification.service';
 import { NotificationEntity } from '../database/entities/notification.entity';
 import { CdrService } from '../database/services/cdr.service';
@@ -124,9 +124,19 @@ ${orgView(org)}
     cdr: ICdr,
     customer: ICustomer,
   ) {
+    let typeIcon = '';
+    switch (cdr.type) {
+      case CallType.Inbound:
+        typeIcon = Icons.InboundCall;
+        break;
+      case CallType.Outbound:
+        typeIcon = Icons.OutboundCall;
+        break;
+    }
+
     const caption = `
 ${orgView(org)}
-${Icons.Phone} +7${customer.phone}
+${typeIcon} +7${customer.phone}
 ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
 
     if (cdr.telegramFileId) {
