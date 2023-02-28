@@ -7,6 +7,9 @@ export class CdrEntity implements ICdr {
   id: number;
 
   @Column()
+  secret: number;
+
+  @Column()
   orgId: number;
 
   @Column()

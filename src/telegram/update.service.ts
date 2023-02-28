@@ -5,6 +5,8 @@ import { NotificationService } from './notification.service';
 import { It005ApiService } from '../it005/it005.api';
 import { OrgService } from '../database/services/org.service';
 import { HeartbeatService } from '../it005/heartbeat.service';
+import { CdrService } from '../database/services/cdr.service';
+import { CustomerService } from '../database/services/customer.service';
 
 @Update()
 export class UpdateService {
@@ -14,6 +16,12 @@ export class UpdateService {
   @Inject(OrgService)
   private orgService: OrgService;
 
+  @Inject(CustomerService)
+  private customerService: CustomerService;
+
+  @Inject(CdrService)
+  private cdrService: CdrService;
+
   @Inject(NotificationService)
   private notificationService: NotificationService;
 
@@ -22,11 +30,6 @@ export class UpdateService {
 
   @Inject(HeartbeatService)
   private heartbeatService: HeartbeatService;
-
-  @Start()
-  async start(@Ctx() ctx) {
-    console.log('start');
-  }
 
   @Command('api_login')
   async apiLogin(@Ctx() ctx) {
@@ -95,5 +98,31 @@ export class UpdateService {
     for (const org of orgs) {
       await this.notificationService.findCallsInOrg(ctx, chat, org, phone);
     }
+  }
+
+  @Hears(/^\/start cdr_(?<id>\d+)_(?<secret>\d+)$/)
+  async showAudio(@Ctx() ctx) {
+    const id = +ctx.match.groups.id;
+    const secret = +ctx.match.groups.secret;
+    if (!secret) {
+      await ctx.reply('Звонок не найден');
+      return;
+    }
+
+    const cdr = await this.cdrService.findById(id);
+    if (cdr?.secret !== secret) {
+      await ctx.reply('Звонок не найден');
+      return;
+    }
+
+    const org = await this.orgService.findById(cdr.orgId);
+    const customer = await this.customerService.findById(cdr.customerId);
+
+    await this.notificationService.sendCallToChat(
+      ctx.user.id,
+      org,
+      cdr,
+      customer,
+    );
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, LessThan, Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { CallStatus, CallType } from '../../types';
 import { CdrEntity } from '../entities/cdr.entity';
 
@@ -17,6 +17,7 @@ export class CdrService {
     const callDuration = +body.callduraction || 0;
     const talkDuration = +body.talkduraction || 0;
 
+    cdr.secret = Math.floor(Math.random() * Number.MAX_VALUE);
     cdr.orgId = orgId;
     cdr.customerId = customerId;
     cdr.type = type;
@@ -56,5 +57,21 @@ export class CdrService {
         telegramFileId,
       },
     );
+  }
+
+  async findById(id: number) {
+    return this.cdrRepository.findOne({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async findBySecret(secret: number) {
+    return this.cdrRepository.findOne({
+      where: {
+        secret,
+      },
+    });
   }
 }

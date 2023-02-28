@@ -28,4 +28,12 @@ export class CustomerService {
 
     return customer;
   }
+
+  async findById(id) {
+    return this.customerRepository.findOne({
+      where: {
+        id,
+      },
+    });
+  }
 }

@@ -103,7 +103,7 @@ ${orgView(org)}
     );
 
     await Promise.all(
-      cdrs.map((cdr) => this.sendCallToChat(chat, org, cdr, customer)),
+      cdrs.map((cdr) => this.sendCallToChat(chat.id, org, cdr, customer)),
     );
   }
 
@@ -120,8 +120,8 @@ ${orgView(org)}
     });
   }
 
-  private async sendCallToChat(
-    chat: IChat,
+  public async sendCallToChat(
+    chatId: number,
     org: IOrg,
     cdr: ICdr,
     customer: ICustomer,
@@ -142,16 +142,22 @@ ${typeIcon} +7${customer.phone}
 ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
 
     if (cdr.telegramFileId) {
-      await this.bot.telegram.sendAudio(chat.id, cdr.telegramFileId, {
+      await this.bot.telegram.sendAudio(chatId, cdr.telegramFileId, {
         caption,
       });
     } else {
-      const downloadUrl: string = await this.it005ApiService.getDownloadUrl(
-        cdr.recording,
-      );
+      let downloadUrl: string;
+      try {
+        downloadUrl = await this.it005ApiService.getDownloadUrl(cdr.recording);
+      } catch (err) {
+        return this.bot.telegram.sendMessage(
+          chatId,
+          'Не удалось загрузить аудио файл',
+        );
+      }
 
       const result = await this.bot.telegram.sendAudio(
-        chat.id,
+        chatId,
         {
           url: downloadUrl,
         },
