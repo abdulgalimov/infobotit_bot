@@ -17,7 +17,7 @@ export class CdrService {
     const callDuration = +body.callduraction || 0;
     const talkDuration = +body.talkduraction || 0;
 
-    cdr.secret = Math.floor(Math.random() * Number.MAX_VALUE);
+    cdr.secret = 1_000_000 + Math.floor(Math.random() * 10_000_000);
     cdr.orgId = orgId;
     cdr.customerId = customerId;
     cdr.type = type;
