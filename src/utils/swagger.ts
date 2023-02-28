@@ -17,7 +17,7 @@ export function addSwagger(app: NestExpressApplication) {
       in: 'header',
       name: 'Authorization',
     })
-    .setTitle('CityHelp')
+    .setTitle('Infobot')
     .setDescription(
       `<pre>
 Build date: ${new Date().toString()}

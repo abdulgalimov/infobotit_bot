@@ -34,7 +34,9 @@ export class NotificationService {
       return;
     }
 
-    const message = `${Icons.Phone} Пропущенный вызов: +7${customer.phone}
+    const message = `
+${orgView(org)}
+${Icons.Phone} Пропущенный вызов: +7${customer.phone}
 #missing`;
     try {
       const result = await this.bot.telegram.sendMessage(org.chatId, message);

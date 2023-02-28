@@ -67,17 +67,14 @@ export class ReportService {
     const { type, dsttrcunkname, srctrunkname, callfrom, callto, status } =
       body;
     let orgSourceName: string;
-    let isOut: number;
     let userPhone: string;
     switch (type) {
       case 'Inbound':
         orgSourceName = srctrunkname;
-        isOut = 0;
         userPhone = callfrom;
         break;
       case 'Outbound':
         orgSourceName = dsttrcunkname;
-        isOut = 1;
         userPhone = callto;
         break;
       default:
