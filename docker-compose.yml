@@ -19,8 +19,8 @@ services:
       - app:/app/files
 
   db:
-    image: postgres:15.2
     restart: always
+    image: postgres:15.2
     container_name: infobot-postgres
     ports:
       - 5432:5432
@@ -34,6 +34,7 @@ services:
       - app_net
 
   pgadmin:
+    restart: always
     container_name: pgadmin
     depends_on:
       - db
@@ -45,9 +46,9 @@ services:
       - 80
     ports:
       - 5433:80
-    restart: always
 
   grafana:
+    restart: always
     image: grafana/grafana:9.3.6
     container_name: infobot-grafana
     ports:
