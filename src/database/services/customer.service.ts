@@ -22,6 +22,7 @@ export class CustomerService {
       customer = this.customerRepository.create();
       customer.orgId = orgId;
       customer.phone = phone;
+      customer.createdAt = new Date();
 
       await this.customerRepository.insert(customer);
     }

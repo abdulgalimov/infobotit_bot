@@ -71,9 +71,15 @@ export class It005ApiService {
   async heartbeat() {
     const key = '2941ff0669660a340d2bae507afd77e9';
     const path = `heartbeat?${key}=${key}`;
-    const body = {
-      ipaddr: '88.99.216.12',
-    };
-    return this.callApi(path, body, true);
+    const body = {};
+    let result;
+    try {
+      result = await this.callApi(path, body, true);
+    } catch (err) {
+      console.error('heartbeat error:', err);
+    }
+    if (result?.status !== 'Success') {
+      await this.login();
+    }
   }
 }

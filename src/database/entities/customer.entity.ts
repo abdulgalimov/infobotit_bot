@@ -10,4 +10,7 @@ export class CustomerEntity {
 
   @Column()
   phone: string;
+
+  @Column()
+  createdAt: Date;
 }
