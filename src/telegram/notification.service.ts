@@ -8,6 +8,7 @@ import { NotificationEntity } from '../database/entities/notification.entity';
 import { CdrService } from '../database/services/cdr.service';
 import { It005ApiService } from '../it005/it005.api';
 import { CustomerService } from '../database/services/customer.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class NotificationService {
@@ -26,9 +27,20 @@ export class NotificationService {
   @Inject(CdrService)
   private cdrService: CdrService;
 
-  constructor(@InjectBot() private bot: Telegraf) {}
+  private readonly debug: boolean;
+
+  constructor(
+    @Inject(ConfigService) configService: ConfigService,
+    @InjectBot() private bot: Telegraf,
+  ) {
+    this.debug = configService.getOrThrow('debug');
+  }
 
   public async sendMissingCall(org: IOrg, customer: ICustomer) {
+    if (this.debug) {
+      return;
+    }
+
     if (!+org.chatId) {
       console.error(`Not found chat in org ${org.id}`);
       return;

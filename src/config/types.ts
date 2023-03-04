@@ -20,4 +20,5 @@ export interface Config {
   adminUsers: number[];
   api: ApiConfig;
   pg: PgConfig;
+  debug: boolean;
 }

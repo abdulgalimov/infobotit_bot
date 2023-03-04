@@ -2,8 +2,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as readline from 'readline';
-import { extractOrgTitle, normalizePhone, timeout } from './utils';
-import { CallStatus, CallType } from '../../types';
+import { extractOrgTitle, normalizePhone } from './utils';
+import {
+  CallStatus,
+  CallType,
+  FinishStatus,
+  ICdr,
+  ICustomer,
+  IOrg,
+} from '../../types';
 import { NotificationService } from '../../telegram/notification.service';
 import { OrgService } from '../../database/services/org.service';
 import { CdrService } from '../../database/services/cdr.service';
@@ -24,7 +31,7 @@ export class ReportService {
   private notificationService: NotificationService;
 
   constructor() {
-    // this.readLog();
+    this.readLog();
   }
 
   async readLog() {
@@ -38,14 +45,13 @@ export class ReportService {
     for await (const line of rl) {
       const body = JSON.parse(line);
       await this.handleReport(body);
-      await timeout(1);
     }
   }
 
   async newReport(body) {
     await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
 
-    await this.handleReport(body);
+    // await this.handleReport(body);
   }
 
   async handleReport(body) {
@@ -63,7 +69,7 @@ export class ReportService {
   }
 
   async newCrdHandler(body) {
-    console.log('new cdr', body);
+    // console.log('new cdr', body);
     const { type, dsttrcunkname, srctrunkname, callfrom, callto, status } =
       body;
     let orgSourceName: string;
@@ -95,20 +101,52 @@ export class ReportService {
 
     const customer = await this.customerService.create(org.id, userPhone);
 
-    await this.cdrService.create(org.id, customer.id, type, body);
+    const cdr = await this.cdrService.create(org.id, customer.id, type, body);
 
-    if (status === CallStatus.NO_ANSWER && type === CallType.Inbound) {
+    if (cdr.status === CallStatus.NO_ANSWER && type === CallType.Inbound) {
       await this.notificationService.sendMissingCall(org, customer);
     }
 
-    if (status === CallStatus.ANSWERED) {
-      await this.notificationService.removeMissingCall(org, customer);
+    if (cdr.status === CallStatus.ANSWERED) {
+      await this.cdrAnswered(org, customer, cdr);
     }
   }
 
+  async cdrAnswered(org: IOrg, customer: ICustomer, cdr: ICdr) {
+    await this.notificationService.removeMissingCall(org, customer);
+
+    const lastNotAnswers = await this.cdrService.findLastNoAnswered(
+      customer.id,
+    );
+
+    if (!lastNotAnswers.length) {
+      return;
+    }
+    let finishStatus: FinishStatus = FinishStatus.NO_ANSWER;
+    switch (cdr.type) {
+      case CallType.Inbound:
+        finishStatus = FinishStatus.USER_CALL;
+        break;
+      case CallType.Outbound:
+        finishStatus = FinishStatus.USER_ANSWER;
+        break;
+    }
+
+    await Promise.all(
+      lastNotAnswers.map((oldCdr) =>
+        this.cdrService.updateFinishStatus(oldCdr.id, finishStatus),
+      ),
+    );
+  }
+
   async callStatusHandler(body) {
-    if (body.callid === '1677087897.1291532') {
-      // console.log('callStatusHandler', JSON.stringify(body, null, 2));
+    switch (body.callid) {
+      case '1677405184.1378326':
+        // console.log('callStatusHandler', JSON.stringify(body, null, 2));
+        break;
+      case '1677405489.1378414':
+        // console.log('callStatusHandler', JSON.stringify(body, null, 2));
+        break;
     }
   }
 }

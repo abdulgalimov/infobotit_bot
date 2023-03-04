@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
-import { CallStatus, CallType } from '../../types';
+import { CallStatus, CallType, FinishStatus, ICdr } from '../../types';
 import { CdrEntity } from '../entities/cdr.entity';
 
 @Injectable()
@@ -73,5 +73,27 @@ export class CdrService {
         secret,
       },
     });
+  }
+
+  async findLastNoAnswered(customerId: number): Promise<ICdr[]> {
+    return this.cdrRepository.find({
+      where: {
+        customerId,
+        status: CallStatus.NO_ANSWER,
+        finishStatus: FinishStatus.NO_ANSWER,
+      },
+    });
+  }
+
+  async updateFinishStatus(id: number, finishStatus) {
+    return this.cdrRepository.update(
+      {
+        id,
+      },
+      {
+        finishStatus,
+        finishedAt: new Date(),
+      },
+    );
   }
 }

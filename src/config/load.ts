@@ -61,5 +61,6 @@ export function loadConfig(): Config {
     adminUsers: loadAdminUsers(),
     api: loadApiConfig(),
     pg: loadPgConfig(),
+    debug: env['DEBUG'] === 'true',
   };
 }

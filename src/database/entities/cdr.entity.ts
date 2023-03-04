@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { CallStatus, CallType, ICdr } from '../../types';
+import { CallStatus, CallType, ICdr, FinishStatus } from '../../types';
 
 @Entity({ name: 'cdrs' })
 export class CdrEntity implements ICdr {
@@ -20,6 +20,18 @@ export class CdrEntity implements ICdr {
 
   @Column()
   status: CallStatus;
+
+  @Column({
+    type: String,
+    default: FinishStatus.NO_ANSWER,
+  })
+  finishStatus: FinishStatus;
+
+  @Column({
+    nullable: true,
+    default: null,
+  })
+  finishedAt: Date;
 
   @Column()
   callId: string;
