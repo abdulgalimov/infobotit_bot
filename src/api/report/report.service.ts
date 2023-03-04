@@ -15,6 +15,8 @@ import { NotificationService } from '../../telegram/notification.service';
 import { OrgService } from '../../database/services/org.service';
 import { CdrService } from '../../database/services/cdr.service';
 import { CustomerService } from '../../database/services/customer.service';
+import { DebugConfig } from '../../config';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ReportService {
@@ -30,8 +32,13 @@ export class ReportService {
   @Inject(NotificationService)
   private notificationService: NotificationService;
 
-  constructor() {
-    // this.readLog();
+  private readonly debug: DebugConfig;
+
+  constructor(@Inject(ConfigService) configService: ConfigService) {
+    this.debug = configService.getOrThrow('debug');
+    if (this.debug.loadFromFile) {
+      this.readLog();
+    }
   }
 
   async readLog() {
@@ -51,7 +58,9 @@ export class ReportService {
   async newReport(body) {
     await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
 
-    await this.handleReport(body);
+    if (!this.debug.loadFromFile) {
+      await this.handleReport(body);
+    }
   }
 
   async handleReport(body) {

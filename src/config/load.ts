@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import * as process from 'process';
-import { ApiConfig, Config, PgConfig } from './types';
+import { ApiConfig, Config, DebugConfig, PgConfig } from './types';
 
 function loadEnv() {
   const isTesting = process.env.TS_JEST === '1';
@@ -53,6 +53,13 @@ function loadPgConfig(): PgConfig {
   };
 }
 
+function loadDebugConfig(): DebugConfig {
+  return {
+    debugMode: env['DEBUG_MODE'] === 'true',
+    loadFromFile: env['DEBUG_LOAD_FROM_FILE'] === 'true',
+  };
+}
+
 export function loadConfig(): Config {
   return {
     telegramToken: env['TELEGRAM_TOKEN'],
@@ -61,6 +68,6 @@ export function loadConfig(): Config {
     adminUsers: loadAdminUsers(),
     api: loadApiConfig(),
     pg: loadPgConfig(),
-    debug: env['DEBUG'] === 'true',
+    debug: loadDebugConfig(),
   };
 }

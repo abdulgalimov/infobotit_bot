@@ -8,6 +8,11 @@ export interface ApiConfig {
   allowedIP: string;
 }
 
+export interface DebugConfig {
+  debugMode: boolean;
+  loadFromFile: boolean;
+}
+
 export interface PgConfig {
   host: string;
   port: number;
@@ -20,5 +25,5 @@ export interface Config {
   adminUsers: number[];
   api: ApiConfig;
   pg: PgConfig;
-  debug: boolean;
+  debug: DebugConfig;
 }

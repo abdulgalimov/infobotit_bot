@@ -9,6 +9,7 @@ import { CdrService } from '../database/services/cdr.service';
 import { It005ApiService } from '../it005/it005.api';
 import { CustomerService } from '../database/services/customer.service';
 import { ConfigService } from '@nestjs/config';
+import { DebugConfig } from '../config';
 
 @Injectable()
 export class NotificationService {
@@ -27,7 +28,7 @@ export class NotificationService {
   @Inject(CdrService)
   private cdrService: CdrService;
 
-  private readonly debug: boolean;
+  private readonly debug: DebugConfig;
 
   constructor(
     @Inject(ConfigService) configService: ConfigService,
@@ -37,7 +38,7 @@ export class NotificationService {
   }
 
   public async sendMissingCall(org: IOrg, customer: ICustomer) {
-    if (this.debug) {
+    if (this.debug.debugMode) {
       return;
     }
 
