@@ -69,7 +69,7 @@ export class ReportService {
   }
 
   async newCrdHandler(body) {
-    // console.log('new cdr', body);
+    console.log('new cdr', body);
     const { type, dsttrcunkname, srctrunkname, callfrom, callto, status } =
       body;
     let orgSourceName: string;
