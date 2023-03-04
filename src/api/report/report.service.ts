@@ -31,7 +31,7 @@ export class ReportService {
   private notificationService: NotificationService;
 
   constructor() {
-    this.readLog();
+    // this.readLog();
   }
 
   async readLog() {
@@ -51,7 +51,7 @@ export class ReportService {
   async newReport(body) {
     await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
 
-    // await this.handleReport(body);
+    await this.handleReport(body);
   }
 
   async handleReport(body) {
