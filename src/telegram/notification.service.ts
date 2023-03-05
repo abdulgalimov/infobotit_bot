@@ -10,6 +10,7 @@ import { It005ApiService } from '../it005/it005.api';
 import { CustomerService } from '../database/services/customer.service';
 import { ConfigService } from '@nestjs/config';
 import { DebugConfig } from '../config';
+import { timeout } from '../api/report/utils';
 
 @Injectable()
 export class NotificationService {
@@ -115,9 +116,10 @@ ${orgView(org)}
       },
     );
 
-    await Promise.all(
-      cdrs.map((cdr) => this.sendCallToChat(chat.id, org, cdr, customer)),
-    );
+    for (const cdr of cdrs) {
+      await this.sendCallToChat(chat.id, org, cdr, customer);
+      await timeout(2500);
+    }
   }
 
   private async sendCallsNotfound(ctx, org: IOrg, phone: string) {
