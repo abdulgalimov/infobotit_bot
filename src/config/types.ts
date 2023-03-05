@@ -6,6 +6,7 @@ export interface ApiConfig {
   port: string;
   callbackUrl: string;
   allowedIP: string;
+  redirectUrs: string[];
 }
 
 export interface DebugConfig {

@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import fetch from 'node-fetch';
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as readline from 'readline';
@@ -15,7 +16,7 @@ import { NotificationService } from '../../telegram/notification.service';
 import { OrgService } from '../../database/services/org.service';
 import { CdrService } from '../../database/services/cdr.service';
 import { CustomerService } from '../../database/services/customer.service';
-import { DebugConfig } from '../../config';
+import { ApiConfig, DebugConfig } from '../../config';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -33,12 +34,15 @@ export class ReportService {
   private notificationService: NotificationService;
 
   private readonly debug: DebugConfig;
+  private redirectUrls: string[];
 
   constructor(@Inject(ConfigService) configService: ConfigService) {
     this.debug = configService.getOrThrow('debug');
     if (this.debug.loadFromFile) {
       this.readLog();
     }
+    const apiConfig = configService.getOrThrow<ApiConfig>('api');
+    this.redirectUrls = apiConfig.redirectUrs;
   }
 
   async readLog() {
@@ -57,9 +61,26 @@ export class ReportService {
 
   async newReport(body) {
     await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
+    this.redirectUrls.map((url) => this.redirectTo(url, body));
 
     if (!this.debug.loadFromFile) {
       await this.handleReport(body);
+    }
+  }
+
+  private async redirectTo(url: string, body) {
+    try {
+      await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+          'content-type': 'application/json',
+        },
+      }).catch((err) => {
+        console.log('redirect err1', url, err);
+      });
+    } catch (err) {
+      console.log('redirect err2', url, err);
     }
   }
 

@@ -43,6 +43,9 @@ function loadApiConfig(): ApiConfig {
     port: env['API_PORT'],
     callbackUrl: env['API_CALLBACK_URL'],
     allowedIP: env['API_ALLOWED_IP'],
+    redirectUrs: (env['API_REDIRECT_URS'] || '')
+      .split(',')
+      .filter((url) => !!url),
   };
 }
 
