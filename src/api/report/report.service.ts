@@ -251,6 +251,8 @@ export class ReportService {
       findExtStatus('ANSWERED')
     ) {
       status = CallStatus.TALK;
+    } else {
+      return;
     }
 
     const title = extractOrgTitle(orgSourceName);
