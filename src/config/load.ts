@@ -69,5 +69,6 @@ export function loadConfig(): Config {
     api: loadApiConfig(),
     pg: loadPgConfig(),
     debug: loadDebugConfig(),
+    port: +env['PORT'],
   };
 }

@@ -23,7 +23,7 @@ services:
     image: postgres:15.2
     container_name: infobot-postgres
     ports:
-      - 5432:5432
+      - 5434:5432
     environment:
       POSTGRES_DB: infobot
       POSTGRES_USER: infobot

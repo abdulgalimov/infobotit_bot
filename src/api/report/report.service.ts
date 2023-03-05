@@ -78,7 +78,7 @@ export class ReportService {
   }
 
   async newCrdHandler(body) {
-    console.log('new cdr', body);
+    //console.log('new cdr', body);
     const { type, dsttrcunkname, srctrunkname, callfrom, callto, status } =
       body;
     let orgSourceName: string;
@@ -149,6 +149,7 @@ export class ReportService {
   }
 
   async callStatusHandler(body) {
+    console.log('call status', body);
     switch (body.callid) {
       case '1677405184.1378326':
         // console.log('callStatusHandler', JSON.stringify(body, null, 2));

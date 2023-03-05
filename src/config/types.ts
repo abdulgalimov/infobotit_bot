@@ -26,4 +26,5 @@ export interface Config {
   api: ApiConfig;
   pg: PgConfig;
   debug: DebugConfig;
+  port: number;
 }
