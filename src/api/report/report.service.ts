@@ -64,7 +64,7 @@ export class ReportService {
 
     for await (const line of rl) {
       const body = JSON.parse(line);
-      await this.handleReport(body);
+      await this.handleReportSafe(body);
     }
   }
 
@@ -73,7 +73,7 @@ export class ReportService {
     this.redirectUrls.map((url) => this.redirectTo(url, body));
 
     if (!this.debug.loadFromFile) {
-      await this.handleReport(body);
+      await this.handleReportSafe(body);
     }
   }
 
@@ -90,6 +90,15 @@ export class ReportService {
       });
     } catch (err) {
       console.log('redirect err2', url, err);
+    }
+  }
+
+  async handleReportSafe(body) {
+    try {
+      await this.handleReport(body);
+    } catch (err) {
+      console.log('Fail handle report', JSON.stringify(body, null, 2));
+      throw err;
     }
   }
 

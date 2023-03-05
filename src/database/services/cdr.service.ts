@@ -29,16 +29,36 @@ export class CdrService {
     cdr.type = type;
     cdr.status = status;
     cdr.callId = body.callid;
-    cdr.timeStart = body.timestart;
-    cdr.timeStart = body.timestart;
+    const timeStart = this.getDate(body.timestart);
+    cdr.timeStart = timeStart;
+    cdr.timeStart = timeStart;
     cdr.waitDuration = callDuration - talkDuration;
     cdr.talkDuration = talkDuration;
     cdr.recording = body.recording;
     cdr.createdAt = new Date();
 
-    await this.cdrRepository.insert(cdr);
+    try {
+      await this.cdrRepository.insert(cdr);
+    } catch (err) {
+      console.log('insert error', cdr);
+      throw err;
+    }
 
     return cdr;
+  }
+
+  private getDate(dateSource: string) {
+    let date: Date;
+    try {
+      date = new Date(dateSource);
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid date');
+      }
+    } catch (err) {
+      console.log('invalid pare date', dateSource);
+      date = new Date();
+    }
+    return date;
   }
 
   async findLastAnswered(customerId: number) {
