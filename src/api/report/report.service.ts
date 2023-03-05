@@ -16,8 +16,11 @@ import { NotificationService } from '../../telegram/notification.service';
 import { OrgService } from '../../database/services/org.service';
 import { CdrService } from '../../database/services/cdr.service';
 import { CustomerService } from '../../database/services/customer.service';
-import { ApiConfig, DebugConfig } from '../../config';
+import { ApiConfig, DebugConfig, RuntimeConfig } from '../../config';
 import { ConfigService } from '@nestjs/config';
+import { CallService } from '../../database/services/call.service';
+import { ICall } from '../../types/interfaces/call';
+import { CallEntity } from '../../database/entities/call.entity';
 
 @Injectable()
 export class ReportService {
@@ -33,8 +36,12 @@ export class ReportService {
   @Inject(NotificationService)
   private notificationService: NotificationService;
 
+  @Inject(CallService)
+  private callService: CallService;
+
   private readonly debug: DebugConfig;
   private redirectUrls: string[];
+  private runtime: RuntimeConfig;
 
   constructor(@Inject(ConfigService) configService: ConfigService) {
     this.debug = configService.getOrThrow('debug');
@@ -43,6 +50,8 @@ export class ReportService {
     }
     const apiConfig = configService.getOrThrow<ApiConfig>('api');
     this.redirectUrls = apiConfig.redirectUrs;
+
+    this.runtime = configService.getOrThrow<RuntimeConfig>('runtime');
   }
 
   async readLog() {
@@ -99,9 +108,9 @@ export class ReportService {
   }
 
   async newCrdHandler(body) {
-    //console.log('new cdr', body);
-    const { type, dsttrcunkname, srctrunkname, callfrom, callto, status } =
-      body;
+    this.logEvents(body);
+
+    const { type, dsttrcunkname, srctrunkname, callfrom, callto } = body;
     let orgSourceName: string;
     let userPhone: string;
     switch (type) {
@@ -129,9 +138,21 @@ export class ReportService {
       return;
     }
 
-    const customer = await this.customerService.create(org.id, userPhone);
+    const [customer, call] = await Promise.all([
+      this.customerService.create(org.id, userPhone),
+      this.callService.findById(body.callid),
+    ]);
+    let cdrStatus: CallStatus;
+    if (call?.status === CallStatus.TALK) {
+      cdrStatus = CallStatus.ANSWERED;
+    } else {
+      cdrStatus = CallStatus.NO_ANSWER;
+    }
 
-    const cdr = await this.cdrService.create(org.id, customer.id, type, body);
+    const [cdr] = await Promise.all([
+      this.cdrService.create(org.id, customer.id, type, cdrStatus, body),
+      this.callService.deleteById(body.callid),
+    ]);
 
     if (cdr.status === CallStatus.NO_ANSWER && type === CallType.Inbound) {
       await this.notificationService.sendMissingCall(org, customer);
@@ -170,14 +191,88 @@ export class ReportService {
   }
 
   async callStatusHandler(body) {
-    console.log('call status', body);
-    switch (body.callid) {
-      case '1677405184.1378326':
-        // console.log('callStatusHandler', JSON.stringify(body, null, 2));
-        break;
-      case '1677405489.1378414':
-        // console.log('callStatusHandler', JSON.stringify(body, null, 2));
-        break;
+    this.logEvents(body);
+    if (!body.members.length) return;
+
+    const callId: string = body.callid;
+    const currentCall: CallEntity = await this.callService.findById(callId);
+
+    function findExtStatus(status: string): boolean {
+      return !!body.members.find(
+        (member) => member.ext?.memberstatus === status,
+      );
+    }
+
+    const member = body.members.find(
+      (member) => member['inbound'] || member['outbound'],
+    );
+    if (!member) {
+      return;
+    }
+
+    const customerInfo = member['inbound'] || member['outbound'];
+
+    let type: CallType;
+    let userPhone: string;
+    let orgSourceName: string;
+    if (member['inbound']) {
+      type = CallType.Inbound;
+      userPhone = customerInfo.from;
+      orgSourceName = customerInfo.trunkname;
+    } else if (member['outbound']) {
+      type = CallType.Outbound;
+      userPhone = customerInfo.to;
+      orgSourceName = customerInfo.trunkname;
+    } else {
+      throw new Error(`Invalid call type: ${callId}`);
+    }
+
+    let status: CallStatus;
+    if (!currentCall) {
+      status = CallStatus.ALERT;
+    } else if (
+      type === CallType.Inbound &&
+      customerInfo.memberstatus === 'ANSWERED' &&
+      findExtStatus('ANSWER')
+    ) {
+      status = CallStatus.TALK;
+    } else if (
+      type === CallType.Outbound &&
+      customerInfo.memberstatus === 'ANSWER' &&
+      findExtStatus('ANSWERED')
+    ) {
+      status = CallStatus.TALK;
+    }
+
+    const title = extractOrgTitle(orgSourceName);
+    const org = await this.orgService.findByTitle(title);
+    if (!org) {
+      console.error(`org ${title} not found`);
+      return;
+    }
+
+    const customer = await this.customerService.create(org.id, userPhone);
+
+    const call: ICall = {
+      callId,
+      status,
+      type,
+      orgId: org.id,
+      customerId: customer.id,
+      createdAt: new Date(),
+    };
+
+    await this.callService.create(call);
+  }
+
+  private logEvents(body) {
+    if (!this.runtime.logEnabled) return;
+    const str = JSON.stringify(body, null, 2);
+    if (
+      !this.runtime.logTemplate ||
+      str.toLowerCase().includes(this.runtime.logTemplate.toLowerCase())
+    ) {
+      console.log('event: ', str);
     }
   }
 }

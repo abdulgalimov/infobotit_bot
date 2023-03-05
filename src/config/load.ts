@@ -1,6 +1,12 @@
 import * as dotenv from 'dotenv';
 import * as process from 'process';
-import { ApiConfig, Config, DebugConfig, PgConfig } from './types';
+import {
+  ApiConfig,
+  Config,
+  DebugConfig,
+  PgConfig,
+  RuntimeConfig,
+} from './types';
 
 function loadEnv() {
   const isTesting = process.env.TS_JEST === '1';
@@ -73,5 +79,9 @@ export function loadConfig(): Config {
     pg: loadPgConfig(),
     debug: loadDebugConfig(),
     port: +env['PORT'],
+    runtime: {
+      logEnabled: false,
+      logTemplate: '',
+    },
   };
 }

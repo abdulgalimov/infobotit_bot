@@ -11,7 +11,13 @@ export class CdrService {
     private cdrRepository: Repository<CdrEntity>,
   ) {}
 
-  async create(orgId: number, customerId: number, type: CallType, body: any) {
+  async create(
+    orgId: number,
+    customerId: number,
+    type: CallType,
+    status: CallStatus,
+    body: any,
+  ) {
     const cdr = this.cdrRepository.create();
 
     const callDuration = +body.callduraction || 0;
@@ -21,7 +27,7 @@ export class CdrService {
     cdr.orgId = orgId;
     cdr.customerId = customerId;
     cdr.type = type;
-    cdr.status = body.status;
+    cdr.status = status;
     cdr.callId = body.callid;
     cdr.timeStart = body.timestart;
     cdr.timeStart = body.timestart;

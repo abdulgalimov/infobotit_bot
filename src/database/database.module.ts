@@ -12,6 +12,8 @@ import { OrgEntity } from './entities/org.entity';
 import { CdrEntity } from './entities/cdr.entity';
 import { CustomerEntity } from './entities/customer.entity';
 import { CustomerService } from './services/customer.service';
+import { CallEntity } from './entities/call.entity';
+import { CallService } from './services/call.service';
 
 @Global()
 @Module({
@@ -34,6 +36,7 @@ import { CustomerService } from './services/customer.service';
             OrgEntity,
             CdrEntity,
             CustomerEntity,
+            CallEntity,
           ],
           synchronize: true,
         };
@@ -45,6 +48,7 @@ import { CustomerService } from './services/customer.service';
       OrgEntity,
       CdrEntity,
       CustomerEntity,
+      CallEntity,
     ]),
   ],
   providers: [
@@ -53,6 +57,7 @@ import { CustomerService } from './services/customer.service';
     OrgService,
     CdrService,
     CustomerService,
+    CallService,
   ],
   exports: [
     NotificationService,
@@ -60,6 +65,7 @@ import { CustomerService } from './services/customer.service';
     OrgService,
     CdrService,
     CustomerService,
+    CallService,
   ],
 })
 export class DatabaseModule {}

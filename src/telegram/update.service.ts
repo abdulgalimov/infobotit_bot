@@ -7,6 +7,8 @@ import { OrgService } from '../database/services/org.service';
 import { HeartbeatService } from '../it005/heartbeat.service';
 import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
+import { ConfigService } from '@nestjs/config';
+import { RuntimeConfig } from '../config';
 
 @Update()
 export class UpdateService {
@@ -30,6 +32,12 @@ export class UpdateService {
 
   @Inject(HeartbeatService)
   private heartbeatService: HeartbeatService;
+
+  private runtime: RuntimeConfig;
+
+  constructor(@Inject(ConfigService) configService: ConfigService) {
+    this.runtime = configService.getOrThrow<RuntimeConfig>('runtime');
+  }
 
   @Command('api_login')
   async apiLogin(@Ctx() ctx) {
@@ -124,5 +132,19 @@ export class UpdateService {
       cdr,
       customer,
     );
+  }
+
+  @Hears(/!logs\s+(?<action>on|off|get)(\s+(?<template>.+))?/)
+  private async showLogs(@Ctx() ctx) {
+    const { action, template } = ctx.match.groups;
+    if (action === 'get') {
+      await ctx.reply(`
+on: ${this.runtime.logEnabled}
+template: ${this.runtime.logTemplate}`);
+      return;
+    }
+
+    this.runtime.logEnabled = action === 'on';
+    this.runtime.logTemplate = template || '';
   }
 }

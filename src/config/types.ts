@@ -19,6 +19,11 @@ export interface PgConfig {
   port: number;
 }
 
+export interface RuntimeConfig {
+  logEnabled: boolean;
+  logTemplate: string;
+}
+
 export interface Config {
   telegramToken: string;
   mongoUri: string;
@@ -28,4 +33,5 @@ export interface Config {
   pg: PgConfig;
   debug: DebugConfig;
   port: number;
+  runtime: RuntimeConfig;
 }

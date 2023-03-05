@@ -1,4 +1,6 @@
 export enum CallStatus {
+  ALERT = 'ALERT',
+  TALK = 'TALK',
   ANSWERED = 'ANSWERED',
   NO_ANSWER = 'NO ANSWER',
   BUSY = 'BUSY',
