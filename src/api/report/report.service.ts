@@ -1,9 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import fetch from 'node-fetch';
-import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
-import * as readline from 'readline';
-import { extractOrgTitle, normalizePhone } from './utils';
+import {
+  extractOrgTitle,
+  getOrgTitleFromCallStatusEvent,
+  getOrgTitleFromNewCdrEvent,
+  normalizePhone,
+} from './utils';
 import {
   CallStatus,
   CallType,
@@ -21,6 +24,7 @@ import { ConfigService } from '@nestjs/config';
 import { CallService } from '../../database/services/call.service';
 import { ICall } from '../../types/interfaces/call';
 import { CallEntity } from '../../database/entities/call.entity';
+import { QueueService } from './queue.service';
 
 @Injectable()
 export class ReportService {
@@ -43,38 +47,45 @@ export class ReportService {
   private redirectUrls: string[];
   private runtime: RuntimeConfig;
 
-  constructor(@Inject(ConfigService) configService: ConfigService) {
+  constructor(
+    @Inject(ConfigService) configService: ConfigService,
+    @Inject(QueueService)
+    private queueService: QueueService,
+  ) {
     this.debug = configService.getOrThrow('debug');
-    if (this.debug.loadFromFile) {
-      this.readLog();
-    }
     const apiConfig = configService.getOrThrow<ApiConfig>('api');
     this.redirectUrls = apiConfig.redirectUrs;
 
     this.runtime = configService.getOrThrow<RuntimeConfig>('runtime');
-  }
 
-  async readLog() {
-    const fileStream = fs.createReadStream('temp/log.txt');
-
-    const rl = readline.createInterface({
-      input: fileStream,
-      crlfDelay: Infinity,
-    });
-
-    for await (const line of rl) {
-      const body = JSON.parse(line);
-      await this.handleReportSafe(body);
-    }
+    this.queueService.onProcess(this.handleReportSafe.bind(this));
   }
 
   async newReport(body) {
-    await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
-    this.redirectUrls.map((url) => this.redirectTo(url, body));
-
-    if (!this.debug.loadFromFile) {
-      await this.handleReportSafe(body);
+    let orgTitle: string = null;
+    switch (body.event) {
+      case 'NewCdr':
+        orgTitle = getOrgTitleFromNewCdrEvent(body);
+        break;
+      case 'CallStatus':
+        orgTitle = getOrgTitleFromCallStatusEvent(body);
+        if (!orgTitle) return;
+        break;
+      case 'PlayPromptEnd':
+        orgTitle = getOrgTitleFromCallStatusEvent(body);
+        break;
+      case 'ExtensionStatus':
+        return;
     }
+    if (!orgTitle) {
+      console.log('get org fail', JSON.stringify(body, null, 2));
+    }
+
+    await this.queueService.add(orgTitle, body);
+
+    await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
+
+    this.redirectUrls.map((url) => this.redirectTo(url, body));
   }
 
   private async redirectTo(url: string, body) {

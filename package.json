@@ -31,6 +31,7 @@
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/swagger": "^6.2.1",
     "@nestjs/typeorm": "^9.0.1",
+    "bull": "^4.10.4",
     "moment": "^2.29.4",
     "mongoose": "^6.9.3",
     "nestjs-telegraf": "^2.6.3",

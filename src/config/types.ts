@@ -24,6 +24,11 @@ export interface RuntimeConfig {
   logTemplate: string;
 }
 
+export interface RedisConfig {
+  host: string;
+  port: number;
+}
+
 export interface Config {
   telegramToken: string;
   mongoUri: string;
@@ -34,4 +39,5 @@ export interface Config {
   debug: DebugConfig;
   port: number;
   runtime: RuntimeConfig;
+  redis: RedisConfig;
 }

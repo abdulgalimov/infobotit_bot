@@ -5,6 +5,7 @@ import {
   Config,
   DebugConfig,
   PgConfig,
+  RedisConfig,
   RuntimeConfig,
 } from './types';
 
@@ -69,6 +70,13 @@ function loadDebugConfig(): DebugConfig {
   };
 }
 
+function loadRedisConfig(): RedisConfig {
+  return {
+    host: env['REDIS_HOST'],
+    port: +env['REDIS_PORT'],
+  };
+}
+
 export function loadConfig(): Config {
   return {
     telegramToken: env['TELEGRAM_TOKEN'],
@@ -83,5 +91,6 @@ export function loadConfig(): Config {
       logEnabled: false,
       logTemplate: '',
     },
+    redis: loadRedisConfig(),
   };
 }
