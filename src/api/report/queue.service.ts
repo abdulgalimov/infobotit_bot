@@ -1,8 +1,9 @@
 import * as Bull from 'bull';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfig } from '../../config';
 import { Job, Queue } from 'bull';
+import { OrgService } from '../org.service';
 
 type Callback = (body: any) => void;
 
@@ -12,11 +13,22 @@ export class QueueService {
   private callback: Callback;
   private redisConfig: RedisConfig;
 
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    @Inject(OrgService)
+    private orgService: OrgService,
+  ) {
     this.redisConfig = configService.getOrThrow<RedisConfig>('redis');
   }
 
-  private getByCallId(orgTitle: string) {
+  public async init() {
+    const { orgs } = await this.orgService.getList();
+
+    orgs.map((org) => this.createByTitle(org.title));
+    this.createByTitle('system');
+  }
+
+  private createByTitle(orgTitle: string) {
     if (!this.queues[orgTitle]) {
       const queue = new Bull(orgTitle, {
         redis: {
@@ -24,14 +36,14 @@ export class QueueService {
           host: this.redisConfig.host,
         },
       });
-      queue.process(this.process);
+      queue.process(this.process.bind(this));
       this.queues[orgTitle] = queue;
     }
     return this.queues[orgTitle];
   }
 
   public async add(orgTitle: string, body: any) {
-    const queue: Queue = this.getByCallId(orgTitle || 'system');
+    const queue: Queue = this.createByTitle(orgTitle || 'system');
     await queue.add(body);
   }
 
@@ -40,6 +52,10 @@ export class QueueService {
   }
 
   public async process(job: Job) {
-    await this.callback(job.data);
+    try {
+      await this.callback(job.data);
+    } catch (err) {
+      console.log('err', err);
+    }
   }
 }

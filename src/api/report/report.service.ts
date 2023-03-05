@@ -59,6 +59,7 @@ export class ReportService {
     this.runtime = configService.getOrThrow<RuntimeConfig>('runtime');
 
     this.queueService.onProcess(this.handleReportSafe.bind(this));
+    this.queueService.init();
   }
 
   async newReport(body) {
