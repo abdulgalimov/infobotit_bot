@@ -6,7 +6,6 @@ export interface ApiConfig {
   port: string;
   callbackUrl: string;
   allowedIP: string;
-  redirectUrs: string[];
 }
 
 export interface DebugConfig {
@@ -22,6 +21,7 @@ export interface PgConfig {
 export interface RuntimeConfig {
   logEnabled: boolean;
   logTemplate: string;
+  redirectUrls: string[];
 }
 
 export interface RedisConfig {

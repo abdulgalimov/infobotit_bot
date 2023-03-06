@@ -147,4 +147,22 @@ template: ${this.runtime.logTemplate}`);
     this.runtime.logEnabled = action === 'on';
     this.runtime.logTemplate = template || '';
   }
+
+  @Hears(/!redirect(\s+(?<action>set|clear)(\s+(?<url>.+))?)?/)
+  private async setRedirect(@Ctx() ctx) {
+    const { action, url } = ctx.match.groups;
+
+    switch (action) {
+      case 'set':
+        this.runtime.redirectUrls.push(url);
+        break;
+      case 'clear':
+        this.runtime.redirectUrls = [];
+        break;
+      case 'get':
+        break;
+    }
+    await ctx.reply(`urls:
+${this.runtime.redirectUrls.join('\n')}`);
+  }
 }

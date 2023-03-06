@@ -44,7 +44,6 @@ export class ReportService {
   private callService: CallService;
 
   private readonly debug: DebugConfig;
-  private redirectUrls: string[];
   private runtime: RuntimeConfig;
 
   constructor(
@@ -53,8 +52,6 @@ export class ReportService {
     private queueService: QueueService,
   ) {
     this.debug = configService.getOrThrow('debug');
-    const apiConfig = configService.getOrThrow<ApiConfig>('api');
-    this.redirectUrls = apiConfig.redirectUrs;
 
     this.runtime = configService.getOrThrow<RuntimeConfig>('runtime');
 
@@ -86,7 +83,7 @@ export class ReportService {
 
     await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
 
-    this.redirectUrls.map((url) => this.redirectTo(url, body));
+    this.runtime.redirectUrls.map((url) => this.redirectTo(url, body));
   }
 
   private async redirectTo(url: string, body) {
