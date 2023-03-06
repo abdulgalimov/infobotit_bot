@@ -7,12 +7,14 @@ import { AuthModule } from '../auth/auth.module';
 import { NotificationService } from './notification.service';
 import { It005Module } from '../it005/it005.module';
 import { UserService } from '../database/services/user.service';
+import { RedisManagerModule } from '../redis/redis.module';
 
 @Global()
 @Module({
   imports: [
     AuthModule,
     It005Module,
+    RedisManagerModule,
     TelegrafModule.forRootAsync({
       inject: [ConfigService, UserService],
       useFactory: async (config: ConfigService, userService: UserService) => {

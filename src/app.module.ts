@@ -6,6 +6,7 @@ import { TelegramModule } from './telegram/telegram.module';
 import { ApiModule } from './api/api.module';
 import { AuthModule } from './auth/auth.module';
 import { It005Module } from './it005/it005.module';
+import { RedisManagerModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { It005Module } from './it005/it005.module';
     TelegramModule,
     AuthModule,
     ApiModule,
+    RedisManagerModule,
   ],
   controllers: [],
   providers: [],

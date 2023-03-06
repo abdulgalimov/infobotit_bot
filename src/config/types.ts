@@ -18,12 +18,6 @@ export interface PgConfig {
   port: number;
 }
 
-export interface RuntimeConfig {
-  logEnabled: boolean;
-  logTemplate: string;
-  redirectUrls: string[];
-}
-
 export interface RedisConfig {
   host: string;
   port: number;
@@ -38,6 +32,5 @@ export interface Config {
   pg: PgConfig;
   debug: DebugConfig;
   port: number;
-  runtime: RuntimeConfig;
   redis: RedisConfig;
 }

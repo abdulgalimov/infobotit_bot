@@ -1,4 +1,4 @@
-import { Command, Ctx, Start, Update, Hears } from 'nestjs-telegraf';
+import { Command, Ctx, Update, Hears } from 'nestjs-telegraf';
 import { Inject } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import { NotificationService } from './notification.service';
@@ -7,8 +7,7 @@ import { OrgService } from '../database/services/org.service';
 import { HeartbeatService } from '../it005/heartbeat.service';
 import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
-import { ConfigService } from '@nestjs/config';
-import { RuntimeConfig } from '../config';
+import { RedisService } from '../redis/redis.service';
 
 @Update()
 export class UpdateService {
@@ -33,11 +32,8 @@ export class UpdateService {
   @Inject(HeartbeatService)
   private heartbeatService: HeartbeatService;
 
-  private runtime: RuntimeConfig;
-
-  constructor(@Inject(ConfigService) configService: ConfigService) {
-    this.runtime = configService.getOrThrow<RuntimeConfig>('runtime');
-  }
+  @Inject(RedisService)
+  private redis: RedisService;
 
   @Command('api_login')
   async apiLogin(@Ctx() ctx) {
@@ -134,35 +130,43 @@ export class UpdateService {
     );
   }
 
-  @Hears(/!logs\s+(?<action>on|off|get)(\s+(?<template>.+))?/)
+  @Hears(/!logs(\s+(?<action>set|off)(\s+(?<template>.+))?)?/)
   private async showLogs(@Ctx() ctx) {
     const { action, template } = ctx.match.groups;
-    if (action === 'get') {
-      await ctx.reply(`
-on: ${this.runtime.logEnabled}
-template: ${this.runtime.logTemplate}`);
-      return;
+    switch (action) {
+      case 'set':
+        this.redis.logEnabled = true;
+        this.redis.logTemplate = template || '';
+        this.redis.save();
+        break;
+      case 'off':
+        this.redis.logEnabled = false;
+        this.redis.save();
+        break;
     }
 
-    this.runtime.logEnabled = action === 'on';
-    this.runtime.logTemplate = template || '';
+    await ctx.reply(`
+on: ${this.redis.logEnabled}
+template: ${this.redis.logTemplate}`);
   }
 
-  @Hears(/!redirect(\s+(?<action>set|clear)(\s+(?<url>.+))?)?/)
+  @Hears(/!redirect(\s+(?<action>set|off)(\s+(?<url>.+))?)?/)
   private async setRedirect(@Ctx() ctx) {
     const { action, url } = ctx.match.groups;
 
     switch (action) {
       case 'set':
-        this.runtime.redirectUrls.push(url);
+        this.redis.redirectUrls.push(url);
+        this.redis.save();
         break;
-      case 'clear':
-        this.runtime.redirectUrls = [];
+      case 'off':
+        this.redis.redirectUrls = [];
+        this.redis.save();
         break;
       case 'get':
         break;
     }
     await ctx.reply(`urls:
-${this.runtime.redirectUrls.join('\n')}`);
+${this.redis.redirectUrls.join('\n')}`);
   }
 }

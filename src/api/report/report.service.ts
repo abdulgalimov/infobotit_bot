@@ -19,12 +19,13 @@ import { NotificationService } from '../../telegram/notification.service';
 import { OrgService } from '../../database/services/org.service';
 import { CdrService } from '../../database/services/cdr.service';
 import { CustomerService } from '../../database/services/customer.service';
-import { ApiConfig, DebugConfig, RuntimeConfig } from '../../config';
+import { DebugConfig } from '../../config';
 import { ConfigService } from '@nestjs/config';
 import { CallService } from '../../database/services/call.service';
 import { ICall } from '../../types/interfaces/call';
 import { CallEntity } from '../../database/entities/call.entity';
 import { QueueService } from './queue.service';
+import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class ReportService {
@@ -43,8 +44,10 @@ export class ReportService {
   @Inject(CallService)
   private callService: CallService;
 
+  @Inject(RedisService)
+  private redisService: RedisService;
+
   private readonly debug: DebugConfig;
-  private runtime: RuntimeConfig;
 
   constructor(
     @Inject(ConfigService) configService: ConfigService,
@@ -52,8 +55,6 @@ export class ReportService {
     private queueService: QueueService,
   ) {
     this.debug = configService.getOrThrow('debug');
-
-    this.runtime = configService.getOrThrow<RuntimeConfig>('runtime');
 
     this.queueService.onProcess(this.handleReportSafe.bind(this));
     this.queueService.init();
@@ -83,7 +84,7 @@ export class ReportService {
 
     await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
 
-    this.runtime.redirectUrls.map((url) => this.redirectTo(url, body));
+    this.redisService.redirectUrls.map((url) => this.redirectTo(url, body));
   }
 
   private async redirectTo(url: string, body) {
@@ -103,6 +104,7 @@ export class ReportService {
   }
 
   async handleReportSafe(body) {
+    this.logEvents(body);
     try {
       await this.handleReport(body);
     } catch (err) {
@@ -126,8 +128,6 @@ export class ReportService {
   }
 
   async newCrdHandler(body) {
-    this.logEvents(body);
-
     const { type, dsttrcunkname, srctrunkname, callfrom, callto } = body;
     let orgSourceName: string;
     let userPhone: string;
@@ -209,7 +209,6 @@ export class ReportService {
   }
 
   async callStatusHandler(body) {
-    this.logEvents(body);
     if (!body.members.length) return;
 
     const callId: string = body.callid;
@@ -286,13 +285,13 @@ export class ReportService {
   }
 
   private logEvents(body) {
-    if (!this.runtime.logEnabled) return;
+    if (!this.redisService.logEnabled) return;
     const str = JSON.stringify(body, null, 2);
     if (
-      !this.runtime.logTemplate ||
-      str.toLowerCase().includes(this.runtime.logTemplate.toLowerCase())
+      !this.redisService.logTemplate ||
+      str.toLowerCase().includes(this.redisService.logTemplate.toLowerCase())
     ) {
-      console.log('event: ', str);
+      console.log('event:', str);
     }
   }
 }
