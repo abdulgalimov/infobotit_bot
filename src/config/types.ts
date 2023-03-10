@@ -10,7 +10,7 @@ export interface ApiConfig {
 
 export interface DebugConfig {
   debugMode: boolean;
-  loadFromFile: boolean;
+  loadFromFile: string;
 }
 
 export interface PgConfig {

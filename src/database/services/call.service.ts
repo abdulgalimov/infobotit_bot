@@ -25,7 +25,7 @@ export class CallService {
     });
   }
 
-  async create(call: ICall) {
+  async create(call: Partial<ICall>) {
     const saved: CallEntity = await this.callRepository.findOne({
       where: {
         callId: call.callId,

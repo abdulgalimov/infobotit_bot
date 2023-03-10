@@ -19,6 +19,9 @@ export class CallEntity implements ICall {
   @Column()
   status: CallStatus;
 
+  @Column({ default: null })
+  finishedAt: Date;
+
   @Column()
   createdAt: Date;
 }

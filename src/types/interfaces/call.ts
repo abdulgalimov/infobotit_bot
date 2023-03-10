@@ -5,6 +5,7 @@ export interface ICall {
   customerId: number;
   type: CallType;
   status: CallStatus;
+  finishedAt: Date;
   callId: string;
   createdAt: Date;
 }

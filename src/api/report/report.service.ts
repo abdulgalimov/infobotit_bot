@@ -26,6 +26,7 @@ import { ICall } from '../../types/interfaces/call';
 import { CallEntity } from '../../database/entities/call.entity';
 import { QueueService } from './queue.service';
 import { RedisService } from '../../redis/redis.service';
+import { LocalService } from './local.service';
 
 @Injectable()
 export class ReportService {
@@ -49,6 +50,8 @@ export class ReportService {
 
   private readonly debug: DebugConfig;
 
+  private localService: LocalService;
+
   constructor(
     @Inject(ConfigService) configService: ConfigService,
     @Inject(QueueService)
@@ -56,11 +59,17 @@ export class ReportService {
   ) {
     this.debug = configService.getOrThrow('debug');
 
+    if (this.debug.loadFromFile) {
+      this.localService = new LocalService(this, this.debug.loadFromFile);
+    }
+
     this.queueService.onProcess(this.handleReportSafe.bind(this));
     this.queueService.init();
   }
 
   async newReport(body) {
+    if (this.localService) return;
+
     let orgTitle: string = null;
     switch (body.event) {
       case 'NewCdr':
@@ -245,6 +254,8 @@ export class ReportService {
     }
 
     let status: CallStatus;
+    const isFinished =
+      customerInfo.memberstatus === 'BYE' || findExtStatus('BYE');
     if (!currentCall) {
       status = CallStatus.ALERT;
     } else if (
@@ -259,7 +270,7 @@ export class ReportService {
       findExtStatus('ANSWERED')
     ) {
       status = CallStatus.TALK;
-    } else {
+    } else if (!isFinished) {
       return;
     }
 
@@ -272,14 +283,19 @@ export class ReportService {
 
     const customer = await this.customerService.create(org.id, userPhone);
 
-    const call: ICall = {
+    const call: Partial<ICall> = {
       callId,
-      status,
       type,
       orgId: org.id,
       customerId: customer.id,
       createdAt: new Date(),
     };
+    if (status) {
+      call.status = status;
+    }
+    if (isFinished) {
+      call.finishedAt = new Date();
+    }
 
     await this.callService.create(call);
   }

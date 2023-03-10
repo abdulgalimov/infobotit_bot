@@ -14,6 +14,9 @@ async function bootstrap() {
 
   addSwagger(app);
 
-  await app.listen(config.getOrThrow('port'));
+  const port = config.getOrThrow('port');
+  await app.listen(port);
+
+  console.log(`Starting with port ${port}`);
 }
 bootstrap();
