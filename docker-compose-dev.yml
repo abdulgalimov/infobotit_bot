@@ -1,20 +1,20 @@
 version: '3'
 
 services:
-  app:
+  infobot-app:
     restart: always
-    container_name: app
+    container_name: infobot-app
     build:
       context: .
       dockerfile: .docker/Dockerfile-dev
-    command: "nodemon apps/server/src/main.ts"
+    command: "npm run start:debug"
     volumes:
-      - './apps:/app/apps'
-      - ./volumes/app/files:/app/files
+      - './src:/app/src'
+      - ./volumes/app/temp:/app/temp
     environment:
       IN_DOCKER: true
     ports:
-      - '3000:3000'
+      - '3002:3002'
     networks:
       - app_net
 

@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
     volumes:
-      - app:/app/files
+      - ./volumes/app/temp:/app/temp
 
   db:
     restart: always
