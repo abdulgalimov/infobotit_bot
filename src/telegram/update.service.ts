@@ -132,6 +132,8 @@ export class UpdateService {
 
   @Hears(/!logs(\s+(?<action>set|off)(\s+(?<template>.+))?)?/)
   private async showLogs(@Ctx() ctx) {
+    if (!ctx.user.isAdmin) return;
+
     const { action, template } = ctx.match.groups;
     switch (action) {
       case 'set':
@@ -152,6 +154,8 @@ template: ${this.redis.logTemplate}`);
 
   @Hears(/!redirect(\s+(?<action>set|off)(\s+(?<url>.+))?)?/)
   private async setRedirect(@Ctx() ctx) {
+    if (!ctx.user.isAdmin) return;
+
     const { action, url } = ctx.match.groups;
 
     switch (action) {
