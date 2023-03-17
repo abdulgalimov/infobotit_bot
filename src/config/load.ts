@@ -1,6 +1,13 @@
 import * as dotenv from 'dotenv';
 import * as process from 'process';
-import { ApiConfig, Config, DebugConfig, PgConfig, RedisConfig } from './types';
+import {
+  ApiConfig,
+  Config,
+  DebugConfig,
+  PgConfig,
+  RedisConfig,
+  SentryConfig,
+} from './types';
 
 function loadEnv() {
   const isTesting = process.env.TS_JEST === '1';
@@ -67,6 +74,13 @@ function loadRedisConfig(): RedisConfig {
   };
 }
 
+function loadSentryConfig(): SentryConfig {
+  return {
+    dsnUrl: env['SENTRY_DSN_URL'],
+    environment: env['SENTRY_ENVIRONMENT'],
+  };
+}
+
 export function loadConfig(): Config {
   return {
     telegramToken: env['TELEGRAM_TOKEN'],
@@ -78,5 +92,6 @@ export function loadConfig(): Config {
     debug: loadDebugConfig(),
     port: +env['PORT'],
     redis: loadRedisConfig(),
+    sentry: loadSentryConfig(),
   };
 }

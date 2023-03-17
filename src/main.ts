@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { addSwagger } from './utils/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
+import { initSentry } from './sentry';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -12,6 +13,7 @@ async function bootstrap() {
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ extended: true, limit: '10mb' }));
 
+  initSentry(app);
   addSwagger(app);
 
   const port = config.getOrThrow('port');

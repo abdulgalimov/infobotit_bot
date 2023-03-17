@@ -55,6 +55,13 @@ export class UpdateService {
     await this.heartbeatService.ping();
   }
 
+  @Command('error')
+  async testError(@Ctx() ctx) {
+    setInterval(() => {
+      throw new Error('');
+    }, 1000);
+  }
+
   @Command('get_token')
   async getToken(@Ctx() ctx) {
     if (!ctx.user.isAdmin) {

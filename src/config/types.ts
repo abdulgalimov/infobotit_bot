@@ -23,6 +23,11 @@ export interface RedisConfig {
   port: number;
 }
 
+export interface SentryConfig {
+  dsnUrl: string;
+  environment: string;
+}
+
 export interface Config {
   telegramToken: string;
   mongoUri: string;
@@ -33,4 +38,5 @@ export interface Config {
   debug: DebugConfig;
   port: number;
   redis: RedisConfig;
+  sentry: SentryConfig;
 }
