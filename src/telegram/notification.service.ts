@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import * as moment from 'moment';
@@ -13,7 +13,7 @@ import { DebugConfig } from '../config';
 import { timeout } from '../api/report/utils';
 
 @Injectable()
-export class NotificationService {
+export class NotificationService implements OnModuleInit {
   @Inject(NotificationServiceDb)
   private notificationServiceDb: NotificationServiceDb;
 
@@ -30,12 +30,22 @@ export class NotificationService {
   private cdrService: CdrService;
 
   private readonly debug: DebugConfig;
+  private readonly adminUsers: number[];
 
   constructor(
     @Inject(ConfigService) configService: ConfigService,
     @InjectBot() private bot: Telegraf,
   ) {
     this.debug = configService.getOrThrow('debug');
+    this.adminUsers = configService.getOrThrow('adminUsers');
+  }
+
+  public async onModuleInit() {
+    await Promise.all(
+      this.adminUsers.map((userId) =>
+        this.bot.telegram.sendMessage(userId, 'Bot restarted'),
+      ),
+    );
   }
 
   public async sendMissingCall(org: IOrg, customer: ICustomer) {
