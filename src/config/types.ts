@@ -19,6 +19,7 @@ export interface PgConfig {
 }
 
 export interface RedisConfig {
+  db?: number;
   host: string;
   port: number;
 }
@@ -26,6 +27,10 @@ export interface RedisConfig {
 export interface SentryConfig {
   dsnUrl: string;
   environment: string;
+}
+
+export interface MonitoringConfig {
+  port: number;
 }
 
 export interface Config {
@@ -39,4 +44,5 @@ export interface Config {
   port: number;
   redis: RedisConfig;
   sentry: SentryConfig;
+  monitoring: MonitoringConfig;
 }

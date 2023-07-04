@@ -17,6 +17,11 @@ services:
       - '3002:3002'
     networks:
       - app_net
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://host.docker.internal:3100/loki/api/v1/push"
+        labels: "infobot-app"
 
 networks:
   app_net:

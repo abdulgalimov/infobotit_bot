@@ -7,6 +7,7 @@ import {
   Post,
   Request,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ReportService } from './report';
@@ -17,6 +18,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @ApiTags('Api')
 @Controller('api')
 export class ApiController {
+  private readonly logger = new Logger('ApiController');
   constructor(
     private readonly reportService: ReportService,
     private readonly orgService: OrgService,
@@ -52,6 +54,8 @@ export class ApiController {
 
   @Post('report')
   async reports(@Body() body) {
+    console.log('reports', body);
+    this.logger.log('reports2', body);
     await this.reportService.newReport(body.body || body);
   }
 }

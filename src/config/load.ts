@@ -4,6 +4,7 @@ import {
   ApiConfig,
   Config,
   DebugConfig,
+  MonitoringConfig,
   PgConfig,
   RedisConfig,
   SentryConfig,
@@ -81,6 +82,12 @@ function loadSentryConfig(): SentryConfig {
   };
 }
 
+function loadMonitoringConfig(): MonitoringConfig {
+  return {
+    port: env['MONITORING_PORT'],
+  };
+}
+
 export function loadConfig(): Config {
   return {
     telegramToken: env['TELEGRAM_TOKEN'],
@@ -93,5 +100,6 @@ export function loadConfig(): Config {
     port: +env['PORT'],
     redis: loadRedisConfig(),
     sentry: loadSentryConfig(),
+    monitoring: loadMonitoringConfig(),
   };
 }

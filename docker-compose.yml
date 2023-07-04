@@ -11,12 +11,18 @@ services:
       - IN_DOCKER=true
     ports:
       - '3002:3002'
+      - '3003:3003'
     networks:
       - app_net
     depends_on:
       - db
     volumes:
       - ./volumes/app/temp:/app/temp
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://host.docker.internal:3100/loki/api/v1/push"
+        labels: "infobot-app"
 
   db:
     restart: always
@@ -35,7 +41,7 @@ services:
 
   pgadmin:
     restart: always
-    container_name: pgadmin
+    container_name: infobot-pgadmin
     depends_on:
       - db
     image: dpage/pgadmin4
@@ -57,6 +63,38 @@ services:
       - grafana:/var/lib/grafana
     networks:
       - app_net
+
+  loki:
+    image: grafana/loki:2.8.0
+    container_name: infobot-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - app_net
+
+  promtail:
+      image: grafana/promtail:2.8.0
+      container_name: infobot-promtail
+      volumes:
+        - /var/log:/var/log
+      command: -config.file=/etc/promtail/config.yml
+      networks:
+        - app_net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: infobot-prometheus
+    volumes:
+      - ./volumes/prometheus:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - '9090:9090'
+    networks:
+      - app_net
+    user: ":"
 
   redis:
     image: redis:7.0.8

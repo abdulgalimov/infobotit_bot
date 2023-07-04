@@ -5,6 +5,7 @@ import { addSwagger } from './utils/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { initSentry } from './sentry';
+import { startMetricsServer } from './monitoring/monitoring.server';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -20,5 +21,7 @@ async function bootstrap() {
   await app.listen(port);
 
   console.log(`Starting with port ${port}`);
+
+  await startMetricsServer(app);
 }
 bootstrap();
