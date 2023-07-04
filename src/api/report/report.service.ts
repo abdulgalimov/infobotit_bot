@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import fetch from 'node-fetch';
-import * as fsPromises from 'fs/promises';
 import {
   extractOrgTitle,
   getOrgTitleFromCallStatusEvent,
@@ -57,6 +56,8 @@ export class ReportService {
     @Inject(QueueService)
     private queueService: QueueService,
   ) {
+    // fsPromises.writeFile('temp/log.txt', ``);
+
     this.debug = configService.getOrThrow('debug');
 
     if (this.debug.loadFromFile) {
@@ -91,7 +92,7 @@ export class ReportService {
 
     await this.queueService.add(orgTitle, body);
 
-    await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
+    // await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
 
     this.redisService.redirectUrls.map((url) => this.redirectTo(url, body));
   }
