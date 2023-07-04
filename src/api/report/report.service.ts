@@ -57,6 +57,8 @@ export class ReportService {
     @Inject(QueueService)
     private queueService: QueueService,
   ) {
+    fsPromises.writeFile('temp/log.txt', ``);
+
     this.debug = configService.getOrThrow('debug');
 
     if (this.debug.loadFromFile) {

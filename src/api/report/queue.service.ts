@@ -2,7 +2,7 @@ import * as Bull from 'bull';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfig } from '../../config';
-import { Job, Queue } from 'bull';
+import { Job, Queue, DoneCallback } from 'bull';
 import { OrgService } from '../org.service';
 
 type Callback = (body: any) => void;
@@ -51,11 +51,13 @@ export class QueueService {
     this.callback = callback;
   }
 
-  public async process(job: Job) {
+  public async process(job: Job, done: DoneCallback) {
     try {
       await this.callback(job.data);
+      done();
     } catch (err) {
       console.log('err', err);
+      done(err);
     }
   }
 }
