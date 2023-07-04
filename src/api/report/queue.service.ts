@@ -31,6 +31,13 @@ export class QueueService {
   private createByTitle(orgTitle: string) {
     if (!this.queues[orgTitle]) {
       const queue = new Bull(orgTitle, {
+        defaultJobOptions: {
+          delay: 1,
+          removeOnComplete: true,
+        },
+        settings: {
+          retryProcessDelay: 100,
+        },
         redis: {
           port: this.redisConfig.port,
           host: this.redisConfig.host,
