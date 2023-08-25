@@ -8,6 +8,8 @@ import {
   PgConfig,
   RedisConfig,
   SentryConfig,
+  SslConfig,
+  WebConfig,
 } from './types';
 
 function loadEnv() {
@@ -88,6 +90,25 @@ function loadMonitoringConfig(): MonitoringConfig {
   };
 }
 
+export function loadSslConfig(): SslConfig | undefined {
+  const keyFile = env['SSL_KEY_FILE'];
+  const certFile = env['SSL_CERT_FILE'];
+  if (!keyFile || !certFile) return;
+
+  return {
+    keyFile,
+    certFile,
+  };
+}
+
+function loadWebConfig(): WebConfig {
+  return {
+    port: +env['PORT'],
+    webUrl: env['WEB_URL'],
+    ssl: loadSslConfig(),
+  };
+}
+
 export function loadConfig(): Config {
   return {
     telegramToken: env['TELEGRAM_TOKEN'],
@@ -97,9 +118,9 @@ export function loadConfig(): Config {
     api: loadApiConfig(),
     pg: loadPgConfig(),
     debug: loadDebugConfig(),
-    port: +env['PORT'],
     redis: loadRedisConfig(),
     sentry: loadSentryConfig(),
     monitoring: loadMonitoringConfig(),
+    web: loadWebConfig(),
   };
 }

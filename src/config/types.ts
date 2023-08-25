@@ -33,6 +33,18 @@ export interface MonitoringConfig {
   port: number;
 }
 
+export interface SslConfig {
+  keyFile: string;
+  certFile: string;
+}
+
+export interface WebConfig {
+  port: number;
+  webUrl: string;
+
+  ssl?: SslConfig;
+}
+
 export interface Config {
   telegramToken: string;
   mongoUri: string;
@@ -41,8 +53,8 @@ export interface Config {
   api: ApiConfig;
   pg: PgConfig;
   debug: DebugConfig;
-  port: number;
   redis: RedisConfig;
   sentry: SentryConfig;
   monitoring: MonitoringConfig;
+  web: WebConfig;
 }

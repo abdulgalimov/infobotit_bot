@@ -19,10 +19,17 @@ import { RedisManagerModule } from '../redis/redis.module';
       inject: [ConfigService, UserService],
       useFactory: async (config: ConfigService, userService: UserService) => {
         const telegramToken = config.getOrThrow('telegramToken');
+        const { webUrl } = config.getOrThrow('web');
 
         return {
           token: telegramToken,
           middlewares: [userMiddleware(userService)],
+          launchOptions: {
+            webhook: {
+              domain: webUrl,
+              hookPath: '/tg-update',
+            },
+          },
         };
       },
     }),
