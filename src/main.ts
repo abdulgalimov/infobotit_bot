@@ -22,6 +22,6 @@ async function bootstrap() {
 
   console.log(`Starting with port ${port}`);
 
-  await startMetricsServer(app);
+  // await startMetricsServer(app);
 }
 bootstrap();
