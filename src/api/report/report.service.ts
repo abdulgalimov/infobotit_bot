@@ -223,6 +223,9 @@ export class ReportService {
 
     const callId: string = body.callid;
     const currentCall: CallEntity = await this.callService.findById(callId);
+    if (!currentCall) {
+      console.log('currentCall', currentCall, JSON.stringify(body, null, 2));
+    }
 
     function findExtStatus(status: string): boolean {
       return !!body.members.find(
