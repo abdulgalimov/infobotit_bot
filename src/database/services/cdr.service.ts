@@ -67,9 +67,9 @@ export class CdrService {
 
     return this.cdrRepository.find({
       where: {
-        createdAt: Between(date, new Date()),
         customerId,
         status: CallStatus.ANSWERED,
+        createdAt: Between(date, new Date()),
       },
     });
   }
@@ -89,14 +89,6 @@ export class CdrService {
     return this.cdrRepository.findOne({
       where: {
         id,
-      },
-    });
-  }
-
-  async findBySecret(secret: number) {
-    return this.cdrRepository.findOne({
-      where: {
-        secret,
       },
     });
   }
