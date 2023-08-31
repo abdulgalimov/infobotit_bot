@@ -8,6 +8,7 @@ import { HeartbeatService } from '../it005/heartbeat.service';
 import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
 import { RedisService } from '../redis/redis.service';
+import * as process from 'process';
 
 @Update()
 export class UpdateService {
@@ -60,6 +61,15 @@ export class UpdateService {
     setInterval(() => {
       throw new Error('');
     }, 1000);
+  }
+
+  @Command('restart')
+  async restart(@Ctx() ctx) {
+    console.log('restarting...');
+    await ctx.reply('Restarting after 3s ...');
+    setTimeout(() => {
+      process.exit(0);
+    }, 3000);
   }
 
   @Command('get_token')
