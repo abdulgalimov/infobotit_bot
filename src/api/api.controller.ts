@@ -54,8 +54,6 @@ export class ApiController {
 
   @Post('report')
   async reports(@Body() body) {
-    console.log('reports', body);
-    this.logger.log('reports2', body);
     await this.reportService.newReport(body.body || body);
   }
 }

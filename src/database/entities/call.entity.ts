@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, Index } from 'typeorm';
 import { CallStatus, CallType } from '../../types';
 import { ICall } from '../../types/interfaces/call';
 
@@ -20,6 +20,7 @@ export class CallEntity implements ICall {
   status: CallStatus;
 
   @Column({ default: null })
+  @Index()
   finishedAt: Date;
 
   @Column()

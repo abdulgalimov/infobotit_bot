@@ -1,7 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 import { CallStatus, CallType, ICdr, FinishStatus } from '../../types';
 
 @Entity({ name: 'cdrs' })
+@Index(['customerId', 'status', 'createdAt'])
+@Index(['customerId', 'status', 'finishStatus'])
 export class CdrEntity implements ICdr {
   @PrimaryGeneratedColumn()
   id: number;

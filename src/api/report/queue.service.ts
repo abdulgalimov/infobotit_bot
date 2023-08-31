@@ -2,10 +2,17 @@ import * as Bull from 'bull';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfig } from '../../config';
-import { Job, Queue, DoneCallback } from 'bull';
+import { Job, Queue, DoneCallback, JobOptions } from 'bull';
 import { OrgService } from '../org.service';
 
 type Callback = (body: any) => void;
+
+const jobOptions: JobOptions = {
+  removeOnComplete: true,
+  removeOnFail: true,
+  delay: 1,
+  timeout: 600000,
+};
 
 @Injectable()
 export class QueueService {
@@ -31,10 +38,7 @@ export class QueueService {
   private createByTitle(orgTitle: string) {
     if (!this.queues[orgTitle]) {
       const queue = new Bull(orgTitle, {
-        defaultJobOptions: {
-          delay: 1,
-          removeOnComplete: true,
-        },
+        defaultJobOptions: jobOptions,
         settings: {
           retryProcessDelay: 100,
         },
@@ -51,7 +55,8 @@ export class QueueService {
 
   public async add(orgTitle: string, body: any) {
     const queue: Queue = this.createByTitle(orgTitle || 'system');
-    await queue.add(body);
+    await queue.add(body, jobOptions);
+    await queue.clean(10000);
   }
 
   public onProcess(callback: Callback) {

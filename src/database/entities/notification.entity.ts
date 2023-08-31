@@ -1,6 +1,7 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity({ name: 'notifications' })
+@Index(['phone', 'chatId'])
 export class NotificationEntity {
   @PrimaryGeneratedColumn()
   id: number;
