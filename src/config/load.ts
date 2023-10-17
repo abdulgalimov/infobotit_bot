@@ -95,7 +95,7 @@ function loadRedirectsConfig(): RedirectsConfig {
   if (!redirects) return {};
 
   return redirects.split(';').reduce((d, value) => {
-    const [title, url] = value.split('=');
+    const [title, url] = value.split('@');
     return {
       ...d,
       [title]: url,
