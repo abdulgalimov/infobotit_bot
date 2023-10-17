@@ -10,10 +10,8 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const config = configService.getOrThrow('redis');
-        console.log('config1', config);
         return {
-          config,
+          config: configService.getOrThrow('redis'),
           connectionName: 'temp',
         };
       },

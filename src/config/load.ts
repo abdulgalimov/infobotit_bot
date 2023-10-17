@@ -88,6 +88,21 @@ function loadMonitoringConfig(): MonitoringConfig {
   };
 }
 
+export type RedirectsConfig = Record<string, string>;
+
+function loadRedirectsConfig(): RedirectsConfig {
+  const redirects: string | undefined = env['REDIRECTS'];
+  if (!redirects) return {};
+
+  return redirects.split(';').reduce((d, value) => {
+    const [title, url] = value.split('=');
+    return {
+      ...d,
+      [title]: url,
+    };
+  }, {});
+}
+
 export function loadConfig(): Config {
   return {
     telegramToken: env['TELEGRAM_TOKEN'],
@@ -101,5 +116,6 @@ export function loadConfig(): Config {
     redis: loadRedisConfig(),
     sentry: loadSentryConfig(),
     monitoring: loadMonitoringConfig(),
+    redirects: loadRedirectsConfig(),
   };
 }

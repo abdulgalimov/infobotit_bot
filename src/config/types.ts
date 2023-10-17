@@ -45,4 +45,6 @@ export interface Config {
   redis: RedisConfig;
   sentry: SentryConfig;
   monitoring: MonitoringConfig;
+
+  redirects: Record<string, string>;
 }

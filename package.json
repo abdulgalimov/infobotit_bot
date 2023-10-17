@@ -11,7 +11,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "dev": "nest start --watch",
     "start:docker:dev": "docker-compose -f docker-compose-dev.yml up infobot-app --force-recreate --build --exit-code-from infobot-app",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",

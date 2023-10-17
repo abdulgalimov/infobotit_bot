@@ -18,7 +18,7 @@ import { NotificationService } from '../../telegram/notification.service';
 import { OrgService } from '../../database/services/org.service';
 import { CdrService } from '../../database/services/cdr.service';
 import { CustomerService } from '../../database/services/customer.service';
-import { DebugConfig } from '../../config';
+import { DebugConfig, RedirectsConfig } from '../../config';
 import { ConfigService } from '@nestjs/config';
 import { CallService } from '../../database/services/call.service';
 import { ICall } from '../../types/interfaces/call';
@@ -48,6 +48,7 @@ export class ReportService {
   private redisService: RedisService;
 
   private readonly debug: DebugConfig;
+  private readonly redirects: RedirectsConfig;
 
   private localService: LocalService;
 
@@ -59,6 +60,7 @@ export class ReportService {
     // fsPromises.writeFile('temp/log.txt', ``);
 
     this.debug = configService.getOrThrow('debug');
+    this.redirects = configService.get('redirects', null);
 
     if (this.debug.loadFromFile) {
       this.localService = new LocalService(this, this.debug.loadFromFile);
@@ -88,6 +90,10 @@ export class ReportService {
     }
     if (!orgTitle) {
       console.log('get org fail', JSON.stringify(body, null, 2));
+    }
+
+    if (this.redirects && this.redirects[orgTitle]) {
+      this.redirectTo(this.redirects[orgTitle], body);
     }
 
     await this.queueService.add(orgTitle, body);
