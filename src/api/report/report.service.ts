@@ -108,6 +108,7 @@ export class ReportService {
       await fetch(url, {
         method: 'POST',
         body: JSON.stringify(body),
+        timeout: 3000,
         headers: {
           'content-type': 'application/json',
         },
