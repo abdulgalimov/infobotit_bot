@@ -11,7 +11,6 @@ services:
       - IN_DOCKER=true
     ports:
       - '3002:3002'
-      - '3003:3003'
     networks:
       - app_net
     depends_on:
