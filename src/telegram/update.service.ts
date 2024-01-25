@@ -9,6 +9,7 @@ import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
 import { RedisService } from '../redis/redis.service';
 import * as process from 'process';
+import * as fs from 'fs/promises';
 
 @Update()
 export class UpdateService {
@@ -189,5 +190,22 @@ template: ${this.redis.logTemplate}`);
     }
     await ctx.reply(`urls:
 ${this.redis.redirectUrls.join('\n')}`);
+  }
+
+  @Hears(/!file\s+(?<filename>.+)/)
+  private async getFile(@Ctx() ctx) {
+    if (!ctx.user.isAdmin) return;
+
+    try {
+      const { filename } = ctx.match.groups;
+
+      const file = await fs.readFile(filename);
+      ctx.telegram.sendDocument(ctx.from.id, {
+        source: file,
+        filename,
+      });
+    } catch (err) {
+      await ctx.reply(err.message);
+    }
   }
 }
