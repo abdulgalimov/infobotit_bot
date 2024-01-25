@@ -8,12 +8,14 @@ import {
   Request,
   UseGuards,
   Logger,
+  StreamableFile,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ReportService } from './report';
 import { OrgService } from './org.service';
 import { CreateOrgDto, InputRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import * as fs from 'fs';
 
 @ApiTags('Api')
 @Controller('api')
@@ -55,5 +57,14 @@ export class ApiController {
   @Post('report')
   async reports(@Body() body) {
     await this.reportService.newReport(body.body || body);
+  }
+
+  @Get('file/:filename')
+  async getFile(@Param('filename') filename: string) {
+    const file = fs.createReadStream(`${process.cwd()}/${filename}`);
+
+    return new StreamableFile(file, {
+      disposition: `attachment; filename="${filename}"`,
+    });
   }
 }
