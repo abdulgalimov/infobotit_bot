@@ -194,13 +194,15 @@ ${this.redis.redirectUrls.join('\n')}`);
 
   @Hears(/!file\s+(?<filename>.+)/)
   private async getFile(@Ctx() ctx) {
+    console.log('getFile', ctx.user.isAdmin);
     if (!ctx.user.isAdmin) return;
 
     try {
       const { filename } = ctx.match.groups;
+      console.log('filename', filename);
 
       const file = await fs.readFile(filename);
-      ctx.telegram.sendDocument(ctx.from.id, {
+      await ctx.telegram.sendDocument(ctx.from.id, {
         source: file,
         filename,
       });
