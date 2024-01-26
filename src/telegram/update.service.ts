@@ -39,12 +39,14 @@ export class UpdateService {
 
   @Command('api_login')
   async apiLogin(@Ctx() ctx) {
+    console.log('api login', ctx.user.isAdmin);
     if (!ctx.user.isAdmin) {
       await ctx.reply('Команда доступна только администратору');
       return;
     }
 
-    await this.it005ApiService.login();
+    const res = await this.it005ApiService.login();
+    console.log('res', res);
   }
 
   @Command('api_heartbeat')
