@@ -65,6 +65,7 @@ function loadDebugConfig(): DebugConfig {
   return {
     debugMode: env['DEBUG_MODE'] === 'true',
     loadFromFile: env['DEBUG_LOAD_FROM_FILE'],
+    newServer: env['NEW_SERVER'] === 'true',
   };
 }
 

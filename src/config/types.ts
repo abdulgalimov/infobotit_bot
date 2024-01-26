@@ -11,6 +11,7 @@ export interface ApiConfig {
 export interface DebugConfig {
   debugMode: boolean;
   loadFromFile: string;
+  newServer: boolean;
 }
 
 export interface PgConfig {
