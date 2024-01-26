@@ -66,8 +66,24 @@ export class UpdateService {
     }, 1000);
   }
 
+  @Command('start')
+  async start(@Ctx() ctx) {
+    await ctx.reply('main menu', {
+      reply_markup: {
+        resize_keyboard: true,
+        keyboard: [[{ text: 'Restart' }, { text: 'GetToken' }]],
+      },
+    });
+  }
+
   @Command('restart')
-  async restart(@Ctx() ctx) {
+  @Hears('Restart')
+  async restartCommand(@Ctx() ctx) {
+    if (!ctx.user.isAdmin) {
+      await ctx.reply('Команда доступна только администратору');
+      return;
+    }
+
     console.log('restarting...');
     await ctx.reply('Restarting after 3s ...');
     setTimeout(() => {
@@ -76,6 +92,7 @@ export class UpdateService {
   }
 
   @Command('get_token')
+  @Hears('GetToken')
   async getToken(@Ctx() ctx) {
     if (!ctx.user.isAdmin) {
       await ctx.reply('Команда доступна только администратору');
@@ -196,12 +213,10 @@ ${this.redis.redirectUrls.join('\n')}`);
 
   @Hears(/!file\s+(?<filename>.+)/)
   private async getFile(@Ctx() ctx) {
-    console.log('getFile', ctx.user.isAdmin);
     if (!ctx.user.isAdmin) return;
 
     try {
       const { filename } = ctx.match.groups;
-      console.log('filename', filename);
 
       const file = await fs.readFile(filename);
       await ctx.telegram.sendDocument(ctx.from.id, {
