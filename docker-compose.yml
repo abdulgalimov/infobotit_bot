@@ -33,20 +33,6 @@ services:
     networks:
       - app_net
 
-  pgadmin:
-    restart: always
-    container_name: infobot-pgadmin
-    depends_on:
-      - db
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.ru
-      PGADMIN_DEFAULT_PASSWORD: admin
-    expose:
-      - 80
-    ports:
-      - 5433:80
-
   grafana:
     restart: always
     image: grafana/grafana:9.3.6
@@ -57,15 +43,6 @@ services:
       - grafana:/var/lib/grafana
     networks:
       - app_net
-
-  promtail:
-      image: grafana/promtail:2.8.0
-      container_name: infobot-promtail
-      volumes:
-        - /var/log:/var/log
-      command: -config.file=/etc/promtail/config.yml
-      networks:
-        - app_net
 
   prometheus:
     image: prom/prometheus:latest
