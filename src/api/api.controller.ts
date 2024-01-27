@@ -9,13 +9,24 @@ import {
   UseGuards,
   Logger,
   StreamableFile,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ReportService } from './report';
 import { OrgService } from './org.service';
 import { CreateOrgDto, InputRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import * as fs from 'fs';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express';
+import { FilesService } from './files.service';
 
 @ApiTags('Api')
 @Controller('api')
@@ -24,6 +35,7 @@ export class ApiController {
   constructor(
     private readonly reportService: ReportService,
     private readonly orgService: OrgService,
+    private readonly filesService: FilesService,
   ) {}
 
   @Post('orgs')
@@ -60,11 +72,29 @@ export class ApiController {
   }
 
   @Get('file/:filename')
+  @ApiBearerAuth('JWT')
+  @UseGuards(JwtAuthGuard)
   async getFile(@Param('filename') filename: string) {
-    const file = fs.createReadStream(`${process.cwd()}/${filename}`);
+    return this.filesService.getFile(filename);
+  }
 
-    return new StreamableFile(file, {
-      disposition: `attachment; filename="${filename}"`,
-    });
+  @Post('upload')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiBearerAuth('JWT')
+  @UseGuards(JwtAuthGuard)
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
+    return this.filesService.uploadFile(file);
   }
 }
