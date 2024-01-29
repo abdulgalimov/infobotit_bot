@@ -159,12 +159,14 @@ export class UpdateService {
 
   @Command('start')
   async start(@Ctx() ctx) {
-    await ctx.reply('main menu', {
-      reply_markup: {
-        resize_keyboard: true,
-        keyboard: [[{ text: 'Restart' }, { text: 'GetToken' }]],
-      },
-    });
+    if (ctx.user.isAdmin) {
+      await ctx.reply('main menu', {
+        reply_markup: {
+          resize_keyboard: true,
+          keyboard: [[{ text: 'Restart' }, { text: 'GetToken' }]],
+        },
+      });
+    }
   }
 
   @Hears(/!logs(\s+(?<action>set|off)(\s+(?<template>.+))?)?/)
