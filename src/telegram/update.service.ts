@@ -66,16 +66,6 @@ export class UpdateService {
     }, 1000);
   }
 
-  @Command('start')
-  async start(@Ctx() ctx) {
-    await ctx.reply('main menu', {
-      reply_markup: {
-        resize_keyboard: true,
-        keyboard: [[{ text: 'Restart' }, { text: 'GetToken' }]],
-      },
-    });
-  }
-
   @Command('restart')
   @Hears('Restart')
   async restartCommand(@Ctx() ctx) {
@@ -165,6 +155,16 @@ export class UpdateService {
       cdr,
       customer,
     );
+  }
+
+  @Command('start')
+  async start(@Ctx() ctx) {
+    await ctx.reply('main menu', {
+      reply_markup: {
+        resize_keyboard: true,
+        keyboard: [[{ text: 'Restart' }, { text: 'GetToken' }]],
+      },
+    });
   }
 
   @Hears(/!logs(\s+(?<action>set|off)(\s+(?<template>.+))?)?/)
