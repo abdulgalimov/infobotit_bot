@@ -21,12 +21,14 @@ import {
 } from '@nestjs/swagger';
 import { ReportService } from './report';
 import { OrgService } from './org.service';
-import { CreateOrgDto, InputRequest } from '../types';
+import { CreateOrgDto, ICustomer, InputRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import * as fs from 'fs';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { FilesService } from './files.service';
+import { CdrService } from '../database/services/cdr.service';
+import { CustomerService } from '../database/services/customer.service';
 
 @ApiTags('Api')
 @Controller('api')
@@ -36,6 +38,8 @@ export class ApiController {
     private readonly reportService: ReportService,
     private readonly orgService: OrgService,
     private readonly filesService: FilesService,
+    private readonly cdrService: CdrService,
+    private readonly customerService: CustomerService,
   ) {}
 
   @Post('orgs')
@@ -96,5 +100,38 @@ export class ApiController {
   @UseGuards(JwtAuthGuard)
   uploadFile(@UploadedFile() file: Express.Multer.File) {
     return this.filesService.uploadFile(file);
+  }
+
+  @Get('calls/find/:org_id/:phone')
+  @ApiBearerAuth('JWT')
+  @UseGuards(JwtAuthGuard)
+  async callsFind(
+    @Param('org_id') orgIdStr: string,
+    @Param('phone') phone: string,
+  ) {
+    const orgId = +orgIdStr;
+    if (!orgId) {
+      return {
+        error: 'invalid org_id',
+      };
+    }
+
+    const phoneReg = /^((\+7)|8|7)?(?<phone>\d+)$/.exec(phone);
+    if (!phoneReg) {
+      return {
+        error: 'phone format invalid',
+      };
+    }
+
+    const customer: ICustomer = await this.customerService.create(
+      +orgId,
+      phoneReg.groups.phone,
+    );
+
+    const cdrs = await this.cdrService.findLastAnswered(customer.id);
+
+    return {
+      cdrs,
+    };
   }
 }

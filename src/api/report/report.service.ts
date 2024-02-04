@@ -144,7 +144,12 @@ export class ReportService {
     // console.log('newReport', event);
   }
 
-  async newCrdHandler(body) {
+  private async extractOrg(orgSourceName: string): Promise<IOrg> {
+    const title = extractOrgTitle(orgSourceName);
+    return this.orgService.findByTitle(title);
+  }
+
+  async newCrdHandler(body: any) {
     const { type, dsttrcunkname, srctrunkname, callfrom, callto } = body;
     let orgSourceName: string;
     let userPhone: string;
@@ -166,10 +171,9 @@ export class ReportService {
       userPhone = normalizePhone(userPhone);
     }
 
-    const title = extractOrgTitle(orgSourceName);
-    const org = await this.orgService.findByTitle(title);
+    const org = await this.extractOrg(orgSourceName);
     if (!org) {
-      console.error(`org ${title} not found`);
+      console.error(`Org for source name: "${orgSourceName}" not found`);
       return;
     }
 
@@ -230,9 +234,6 @@ export class ReportService {
 
     const callId: string = body.callid;
     const currentCall: CallEntity = await this.callService.findById(callId);
-    if (!currentCall) {
-      console.log('currentCall', currentCall, JSON.stringify(body, null, 2));
-    }
 
     function findExtStatus(status: string): boolean {
       return !!body.members.find(
@@ -248,18 +249,23 @@ export class ReportService {
     }
 
     const customerInfo = member['inbound'] || member['outbound'];
+    const orgSourceName: string = customerInfo.trunkname;
+
+    const title = extractOrgTitle(orgSourceName);
+    const org = await this.orgService.findByTitle(title);
+    if (!org) {
+      console.error(`org ${title} not found`);
+      return;
+    }
 
     let type: CallType;
     let userPhone: string;
-    let orgSourceName: string;
     if (member['inbound']) {
       type = CallType.Inbound;
       userPhone = customerInfo.from;
-      orgSourceName = customerInfo.trunkname;
     } else if (member['outbound']) {
       type = CallType.Outbound;
       userPhone = customerInfo.to;
-      orgSourceName = customerInfo.trunkname;
     } else {
       throw new Error(`Invalid call type: ${callId}`);
     }
@@ -282,13 +288,6 @@ export class ReportService {
     ) {
       status = CallStatus.TALK;
     } else if (!isFinished) {
-      return;
-    }
-
-    const title = extractOrgTitle(orgSourceName);
-    const org = await this.orgService.findByTitle(title);
-    if (!org) {
-      console.error(`org ${title} not found`);
       return;
     }
 
