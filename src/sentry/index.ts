@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/node';
 import { SentryInterceptor } from './sentry.interceptor';
 import { SentryLogger } from './sentry.logger';
 import { Config, SentryConfig } from '../config';
+import './unhandled';
 
 export const initSentry = (app: INestApplication) => {
   const config: ConfigService<Config> = app.get(ConfigService);
