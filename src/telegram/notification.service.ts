@@ -175,6 +175,7 @@ ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
       try {
         downloadUrl = await this.it005ApiService.getDownloadUrl(cdr.recording);
       } catch (err) {
+        console.error('Fail load audio from server', err);
         return this.bot.telegram.sendMessage(
           chatId,
           `Не удалось загрузить аудио файл: ${cdr.recording}`,
@@ -194,6 +195,7 @@ ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
         );
         sendFileId = result.audio.file_id;
       } catch (err) {
+        console.error('Fail sent audio to telegram', err);
         return this.bot.telegram.sendMessage(
           chatId,
           `Не удалось отправить аудио файл: ${downloadUrl}`,
