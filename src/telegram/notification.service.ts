@@ -177,24 +177,30 @@ ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
       } catch (err) {
         return this.bot.telegram.sendMessage(
           chatId,
-          'Не удалось загрузить аудио файл',
+          `Не удалось загрузить аудио файл: ${cdr.recording}`,
         );
       }
 
-      const result = await this.bot.telegram.sendAudio(
-        chatId,
-        {
-          url: downloadUrl,
-        },
-        {
-          caption,
-        },
-      );
+      let sendFileId: string;
+      try {
+        const result = await this.bot.telegram.sendAudio(
+          chatId,
+          {
+            url: downloadUrl,
+          },
+          {
+            caption,
+          },
+        );
+        sendFileId = result.audio.file_id;
+      } catch (err) {
+        return this.bot.telegram.sendMessage(
+          chatId,
+          `Не удалось отправить аудио файл: ${downloadUrl}`,
+        );
+      }
 
-      await this.cdrServiceDb.updateTelegramFileId(
-        cdr.id,
-        result.audio.file_id,
-      );
+      await this.cdrServiceDb.updateTelegramFileId(cdr.id, sendFileId);
     }
   }
 }
