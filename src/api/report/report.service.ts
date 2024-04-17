@@ -196,8 +196,14 @@ export class ReportService {
       this.callService.deleteById(body.callid),
     ]);
 
-    if (cdr.status === CallStatus.NO_ANSWER && type === CallType.Inbound) {
-      await this.notificationService.sendMissingCall(org, customer);
+    if (cdr.status === CallStatus.NO_ANSWER) {
+      if (type === CallType.Inbound) {
+        // ресторан не ответил
+        await this.notificationService.sendMissingCall(org, customer);
+      } else if (type === CallType.Outbound) {
+        // клиент не ответил на перезвон
+        await this.notificationService.removeMissingCall(org, customer);
+      }
     }
 
     if (cdr.status === CallStatus.ANSWERED) {
