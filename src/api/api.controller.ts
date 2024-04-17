@@ -8,7 +8,6 @@ import {
   Request,
   UseGuards,
   Logger,
-  StreamableFile,
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
@@ -23,7 +22,6 @@ import { ReportService } from './report';
 import { OrgService } from './org.service';
 import { CreateOrgDto, ICustomer, InputRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import * as fs from 'fs';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { FilesService } from './files.service';
@@ -31,7 +29,7 @@ import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
 
 @ApiTags('Api')
-@Controller('api')
+@Controller('app')
 export class ApiController {
   private readonly logger = new Logger('ApiController');
   constructor(

@@ -32,7 +32,7 @@ ${runInfo}
     include: [ApiModule],
   });
 
-  SwaggerModule.setup('api/swagger', app, document);
+  SwaggerModule.setup('app/swagger', app, document);
 
   return document;
 }
