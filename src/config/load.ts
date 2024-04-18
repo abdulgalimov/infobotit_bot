@@ -8,6 +8,7 @@ import {
   PgConfig,
   RedisConfig,
   SentryConfig,
+  TelegramConfig,
 } from './types';
 
 function loadEnv() {
@@ -104,9 +105,24 @@ function loadRedirectsConfig(): RedirectsConfig {
   }, {});
 }
 
+function loadTelegramConfig(): TelegramConfig {
+  const webhookDomain = env['TELEGRAM_WEBHOOK_DOMAIN'];
+  const webhookPath = env['TELEGRAM_WEBHOOK_PATH'];
+  return {
+    token: env['TELEGRAM_TOKEN'],
+    webhook:
+      webhookDomain && webhookPath
+        ? {
+            domain: webhookDomain,
+            path: webhookPath,
+          }
+        : undefined,
+  };
+}
+
 export function loadConfig(): Config {
   return {
-    telegramToken: env['TELEGRAM_TOKEN'],
+    telegram: loadTelegramConfig(),
     mongoUri: env['MONGO_URI'],
     jwtSecret: env['JWT_SECRET'],
     adminUsers: loadAdminUsers(),

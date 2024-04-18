@@ -34,8 +34,16 @@ export interface MonitoringConfig {
   port: number;
 }
 
+export interface TelegramConfig {
+  token: string;
+  webhook?: {
+    domain: string;
+    path: string;
+  };
+}
+
 export interface Config {
-  telegramToken: string;
+  telegram: TelegramConfig;
   mongoUri: string;
   jwtSecret: string;
   adminUsers: number[];

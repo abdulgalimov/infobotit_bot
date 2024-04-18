@@ -8,6 +8,8 @@ import { NotificationService } from './notification.service';
 import { It005Module } from '../it005/it005.module';
 import { UserService } from '../database/services/user.service';
 import { RedisManagerModule } from '../redis/redis.module';
+import { Telegraf } from 'telegraf';
+import { TelegramConfig } from '../config';
 
 @Global()
 @Module({
@@ -18,10 +20,20 @@ import { RedisManagerModule } from '../redis/redis.module';
     TelegrafModule.forRootAsync({
       inject: [ConfigService, UserService],
       useFactory: async (config: ConfigService, userService: UserService) => {
-        const telegramToken = config.getOrThrow('telegramToken');
+        const telegram = config.getOrThrow<TelegramConfig>('telegram');
+        const { token, webhook } = telegram;
+
+        const launchOptions: Telegraf.LaunchOptions = {};
+        launchOptions.webhook = webhook
+          ? {
+              domain: webhook.domain,
+              hookPath: webhook.path,
+            }
+          : undefined;
 
         return {
-          token: telegramToken,
+          token,
+          launchOptions,
           middlewares: [userMiddleware(userService)],
         };
       },
