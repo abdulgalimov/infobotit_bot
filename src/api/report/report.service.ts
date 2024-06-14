@@ -199,7 +199,7 @@ export class ReportService {
     if (cdr.status === CallStatus.NO_ANSWER) {
       if (type === CallType.Inbound) {
         // ресторан не ответил
-        await this.notificationService.sendMissingCall(org, customer);
+        await this.notificationService.sendMissingCall(cdr, org, customer);
       } else if (type === CallType.Outbound) {
         // клиент не ответил на перезвон
         await this.notificationService.removeMissingCall(org, customer);

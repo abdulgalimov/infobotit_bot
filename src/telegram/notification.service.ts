@@ -48,7 +48,35 @@ export class NotificationService implements OnModuleInit {
     );
   }
 
-  public async sendMissingCall(org: IOrg, customer: ICustomer) {
+  private getCallto(cdr: ICdr): string | null {
+    if (cdr.orgId === 18) {
+      switch (cdr.callto1) {
+        case '6715':
+          return 'Буйнакского';
+        case '6716':
+          return 'Коркмасово';
+      }
+    }
+
+    if (cdr.orgId === 10) {
+      switch (cdr.callto2) {
+        case '1041':
+          return 'Турали';
+        case '1042':
+          return 'Акушинского';
+        case '1043':
+          return 'А-Султана';
+        case '1039':
+          return 'Каммаева';
+        case '1035':
+          return 'Офис';
+      }
+
+      return null;
+    }
+  }
+
+  public async sendMissingCall(cdr: ICdr, org: IOrg, customer: ICustomer) {
     if (this.debug.debugMode) {
       return;
     }
@@ -58,12 +86,23 @@ export class NotificationService implements OnModuleInit {
       return;
     }
 
-    const message = `
-${orgView(org)}
-${Icons.Phone} Пропущенный вызов: +7${customer.phone}
-#missing`;
+    const message: string[] = [
+      `${orgView(org)}`,
+      `${Icons.Phone} Пропущенный вызов: +7${customer.phone}`,
+    ];
+
+    const callto = this.getCallto(cdr);
+    if (callto) {
+      message.push(`Внутренний: ${callto}`);
+    }
+
+    message.push('#missing');
+
     try {
-      const result = await this.bot.telegram.sendMessage(org.chatId, message);
+      const result = await this.bot.telegram.sendMessage(
+        org.chatId,
+        message.join('\n'),
+      );
 
       await this.notificationServiceDb.create(
         org.id,
