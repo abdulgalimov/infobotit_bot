@@ -12,4 +12,5 @@ export interface ICdr {
   talkDuration: number;
   recording: string;
   telegramFileId: string;
+  infos: string;
 }

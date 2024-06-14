@@ -35,6 +35,7 @@ export class CdrService {
     cdr.waitDuration = callDuration - talkDuration;
     cdr.talkDuration = talkDuration;
     cdr.recording = body.recording;
+    cdr.infos = `${body.infos || ''}`;
     cdr.createdAt = new Date();
 
     try {
