@@ -57,5 +57,8 @@ export class CdrEntity implements ICdr {
   telegramFileId: string;
 
   @Column({ default: '' })
-  infos: string;
+  callto1: string;
+
+  @Column({ default: '' })
+  callto2: string;
 }

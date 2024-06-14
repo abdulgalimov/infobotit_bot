@@ -4,6 +4,8 @@ import { Between, Repository } from 'typeorm';
 import { CallStatus, CallType, FinishStatus, ICdr } from '../../types';
 import { CdrEntity } from '../entities/cdr.entity';
 
+const callToReg = /(?<callto1>[^()]+)(\((?<callto2>.+)\))?/;
+
 @Injectable()
 export class CdrService {
   constructor(
@@ -35,8 +37,16 @@ export class CdrService {
     cdr.waitDuration = callDuration - talkDuration;
     cdr.talkDuration = talkDuration;
     cdr.recording = body.recording;
-    cdr.infos = `${body.infos || ''}`;
     cdr.createdAt = new Date();
+
+    if (body.type === 'Inbound' && body.callto) {
+      const callto = `${body.callto}`;
+      callToReg.lastIndex = 0;
+      const exec = callToReg.exec(callto);
+      const { callto1, callto2 } = exec.groups;
+      cdr.callto1 = callto1;
+      cdr.callto2 = callto2;
+    }
 
     try {
       await this.cdrRepository.insert(cdr);
