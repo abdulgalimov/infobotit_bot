@@ -88,11 +88,12 @@ export class ReportService {
       case 'ExtensionStatus':
         return;
       default:
-        console.log('Unknown body.event', JSON.stringify(body, null, 2));
+        // console.log('Unknown body.event', JSON.stringify(body, null, 2));
         return;
     }
     if (!orgTitle) {
-      console.log('get org fail', JSON.stringify(body, null, 2));
+      console.error('get org fail', JSON.stringify(body, null, 2));
+      return;
     }
 
     if (this.redirects && this.redirects[orgTitle]) {
