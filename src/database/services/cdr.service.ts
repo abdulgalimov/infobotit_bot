@@ -48,6 +48,15 @@ export class CdrService {
       cdr.callto2 = callto2;
     }
 
+    if (body.type === 'Outbound' && body.callfrom) {
+      const callfrom = `${body.callfrom}`;
+      callToReg.lastIndex = 0;
+      const exec = callToReg.exec(callfrom);
+      const { callto1, callto2 } = exec.groups;
+      cdr.callto1 = callto1;
+      cdr.callto2 = callto2;
+    }
+
     try {
       await this.cdrRepository.insert(cdr);
     } catch (err) {
