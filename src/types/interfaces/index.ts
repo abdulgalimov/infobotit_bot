@@ -3,3 +3,4 @@ export * from './express';
 export * from './user';
 export * from './cdr';
 export * from './customers';
+export * from './notification-titles';

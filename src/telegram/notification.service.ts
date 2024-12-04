@@ -2,7 +2,16 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import * as moment from 'moment';
-import { CallType, ICdr, IChat, Icons, ICustomer, IOrg } from '../types';
+import {
+  CallType,
+  ICdr,
+  IChat,
+  Icons,
+  ICustomer,
+  IOrg,
+  NotificationTitleOrg,
+  NotificationTitles,
+} from '../types';
 import { NotificationService as NotificationServiceDb } from '../database/services/notification.service';
 import { NotificationEntity } from '../database/entities/notification.entity';
 import { CdrService } from '../database/services/cdr.service';
@@ -11,6 +20,7 @@ import { CustomerService } from '../database/services/customer.service';
 import { ConfigService } from '@nestjs/config';
 import { DebugConfig } from '../config';
 import { timeout } from '../api/report/utils';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class NotificationService implements OnModuleInit {
@@ -29,8 +39,13 @@ export class NotificationService implements OnModuleInit {
   @Inject(CdrService)
   private cdrService: CdrService;
 
+  @Inject(RedisService)
+  private redisService: RedisService;
+
   private readonly debug: DebugConfig;
   private readonly adminUsers: number[];
+
+  private notificationTitles: NotificationTitles;
 
   constructor(
     @Inject(ConfigService) configService: ConfigService,
@@ -41,14 +56,35 @@ export class NotificationService implements OnModuleInit {
   }
 
   public async onModuleInit() {
-    await Promise.all(
+    const [notificationTitles] = await Promise.all([
+      this.redisService.getNotificationTitles(),
       this.adminUsers.map((userId) =>
         this.bot.telegram.sendMessage(userId, 'Bot restarted'),
       ),
-    );
+    ]);
+
+    this.notificationTitles = notificationTitles;
   }
 
   private getCallto(cdr: ICdr): string | null {
+    if (this.notificationTitles && this.notificationTitles[cdr.orgId]) {
+      const notificationTitleOrg = this.notificationTitles[cdr.orgId];
+
+      if (
+        notificationTitleOrg.callto1 &&
+        notificationTitleOrg.callto1[cdr.callto1]
+      ) {
+        return notificationTitleOrg.callto1[cdr.callto1];
+      }
+
+      if (
+        notificationTitleOrg.callto2 &&
+        notificationTitleOrg.callto2[cdr.callto2]
+      ) {
+        return notificationTitleOrg.callto2[cdr.callto2];
+      }
+    }
+
     if (cdr.orgId === 18) {
       switch (cdr.callto1) {
         case '6715':

@@ -1,6 +1,7 @@
 import { Global, Injectable, OnModuleInit } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { RedisManager } from '@liaoliaots/nestjs-redis';
+import { NotificationTitles } from '../types';
 
 @Global()
 @Injectable()
@@ -33,5 +34,14 @@ export class RedisService implements OnModuleInit {
         redirectUrls: this.redirectUrls,
       }),
     );
+  }
+
+  public async getNotificationTitles(): Promise<NotificationTitles> {
+    const result = await this.client.get('notification-titles');
+    return result ? JSON.parse(result) : {};
+  }
+
+  public async setNotificationTitles(config: object) {
+    return this.client.set('notification-titles', JSON.stringify(config));
   }
 }

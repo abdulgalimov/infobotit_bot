@@ -10,6 +10,7 @@ import {
   Logger,
   UseInterceptors,
   UploadedFile,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -27,6 +28,8 @@ import { Express } from 'express';
 import { FilesService } from './files.service';
 import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
+import { RedisService } from '../redis/redis.service';
+import { validateNotificationTitles } from './validator';
 
 @ApiTags('Api')
 @Controller('app')
@@ -38,6 +41,7 @@ export class ApiController {
     private readonly filesService: FilesService,
     private readonly cdrService: CdrService,
     private readonly customerService: CustomerService,
+    private readonly redisService: RedisService,
   ) {}
 
   @Post('orgs')
@@ -131,5 +135,55 @@ export class ApiController {
     return {
       cdrs,
     };
+  }
+
+  @Get('notification-titles')
+  async getNotificationTitles() {
+    return this.redisService.getNotificationTitles();
+  }
+
+  @Post('notification-titles')
+  @ApiBody({
+    schema: {
+      type: 'object',
+    },
+    examples: {
+      empty: {
+        summary: 'Пустой пример',
+        value: {},
+      },
+      full: {
+        summary: 'Заполенный пример',
+        value: {
+          '10': {
+            callto2: {
+              '1041': 'Турали',
+              '1042': 'Акушинского',
+              '1043': 'А-Султана',
+              '1039': 'Каммаева',
+              '1035': 'Офис',
+            },
+          },
+          '18': {
+            callto1: {
+              '6715': 'Буйнакского',
+              '6716': 'Коркмасово',
+            },
+          },
+        },
+      },
+    },
+  })
+  @ApiBearerAuth('JWT')
+  @UseGuards(JwtAuthGuard)
+  async setNotificationTitles(@Body() body: object) {
+    try {
+      validateNotificationTitles(body);
+    } catch (error) {
+      return {
+        error: error.message,
+      };
+    }
+    return this.redisService.setNotificationTitles(body);
   }
 }
