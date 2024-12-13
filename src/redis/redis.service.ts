@@ -42,6 +42,7 @@ export class RedisService implements OnModuleInit {
   }
 
   public async setNotificationTitles(config: object) {
+    console.log('setNotificationTitles', config);
     return this.client.set('notification-titles', JSON.stringify(config));
   }
 }

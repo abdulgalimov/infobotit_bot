@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import * as moment from 'moment';
@@ -9,7 +9,6 @@ import {
   Icons,
   ICustomer,
   IOrg,
-  NotificationTitleOrg,
   NotificationTitles,
 } from '../types';
 import { NotificationService as NotificationServiceDb } from '../database/services/notification.service';
@@ -23,7 +22,7 @@ import { timeout } from '../api/report/utils';
 import { RedisService } from '../redis/redis.service';
 
 @Injectable()
-export class NotificationService implements OnModuleInit {
+export class NotificationService implements OnApplicationBootstrap {
   @Inject(NotificationServiceDb)
   private notificationServiceDb: NotificationServiceDb;
 
@@ -55,7 +54,7 @@ export class NotificationService implements OnModuleInit {
     this.adminUsers = configService.getOrThrow('adminUsers');
   }
 
-  public async onModuleInit() {
+  public async onApplicationBootstrap() {
     const [notificationTitles] = await Promise.all([
       this.redisService.getNotificationTitles(),
       this.adminUsers.map((userId) =>
