@@ -62,11 +62,13 @@ export class NotificationService implements OnModuleInit {
         this.bot.telegram.sendMessage(userId, 'Bot restarted'),
       ),
     ]);
+    console.log('notificationTitles', notificationTitles);
 
     this.notificationTitles = notificationTitles;
   }
 
   private getCallto(cdr: ICdr): string | null {
+    console.log('getCallto', cdr.id, cdr.callto1, cdr.callto2);
     if (this.notificationTitles && this.notificationTitles[cdr.orgId]) {
       const notificationTitleOrg = this.notificationTitles[cdr.orgId];
 
