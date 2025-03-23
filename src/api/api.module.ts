@@ -5,10 +5,17 @@ import { OrgService } from './org.service';
 import { QueueService } from './report/queue.service';
 import { RedisManagerModule } from '../redis/redis.module';
 import { FilesService } from './files.service';
+import { It005ApiService } from '../it005/it005.api';
 
 @Module({
   imports: [RedisManagerModule],
   controllers: [ApiController],
-  providers: [ReportService, OrgService, QueueService, FilesService],
+  providers: [
+    ReportService,
+    OrgService,
+    QueueService,
+    FilesService,
+    It005ApiService,
+  ],
 })
 export class ApiModule {}

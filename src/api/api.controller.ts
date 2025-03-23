@@ -10,7 +10,6 @@ import {
   Logger,
   UseInterceptors,
   UploadedFile,
-  Inject,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -30,6 +29,7 @@ import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
 import { RedisService } from '../redis/redis.service';
 import { validateNotificationTitles } from './validator';
+import { It005ApiService } from '../it005/it005.api';
 
 @ApiTags('Api')
 @Controller('app')
@@ -42,6 +42,7 @@ export class ApiController {
     private readonly cdrService: CdrService,
     private readonly customerService: CustomerService,
     private readonly redisService: RedisService,
+    private readonly it005ApiService: It005ApiService,
   ) {}
 
   @Post('orgs')
@@ -140,6 +141,19 @@ export class ApiController {
   @Get('notification-titles')
   async getNotificationTitles() {
     return this.redisService.getNotificationTitles();
+  }
+
+  @Get('download-url/:recording')
+  @ApiParam({
+    name: 'recording',
+  })
+  async getDownloadUrl(@Param('recording') recording) {
+    try {
+      return await this.it005ApiService.getDownloadUrl(recording);
+    } catch (error) {
+      console.error('Failed get download url', recording, error);
+      return null;
+    }
   }
 
   @Post('notification-titles')
