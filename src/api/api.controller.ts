@@ -10,6 +10,7 @@ import {
   Logger,
   UseInterceptors,
   UploadedFile,
+  Res,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -23,7 +24,7 @@ import { OrgService } from './org.service';
 import { CreateOrgDto, ICustomer, InputRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
+import { Express, Response } from 'express';
 import { FilesService } from './files.service';
 import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
@@ -147,9 +148,11 @@ export class ApiController {
   @ApiParam({
     name: 'recording',
   })
-  async getDownloadUrl(@Param('recording') recording) {
+  async getDownloadUrl(@Param('recording') recording, @Res() res: Response) {
     try {
-      return await this.it005ApiService.getDownloadUrl(recording);
+      const downloadUrl = await this.it005ApiService.getDownloadUrl(recording);
+      console.log('redirect url', downloadUrl);
+      res.redirect(downloadUrl);
     } catch (error) {
       console.error('Failed get download url', recording, error);
       return null;
