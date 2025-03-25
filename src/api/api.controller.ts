@@ -160,9 +160,9 @@ export class ApiController {
 
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename="${tempFile.name}"`,
+        `inline; filename="${tempFile.name}"`,
       );
-      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Type', 'audio/wav');
 
       const fileStream = fs.createReadStream(tempFile.name);
       fileStream.pipe(res);

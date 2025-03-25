@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { It005ApiService } from './it005.api';
 import { HeartbeatService } from './heartbeat.service';
 
@@ -6,4 +6,5 @@ import { HeartbeatService } from './heartbeat.service';
   providers: [It005ApiService, HeartbeatService],
   exports: [It005ApiService, HeartbeatService],
 })
+@Global()
 export class It005Module {}

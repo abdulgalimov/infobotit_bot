@@ -9,6 +9,7 @@ export class It005ApiService {
   private readonly apiConfig: ApiConfig;
   private apiToken: string;
   constructor(@Inject(ConfigService) configService: ConfigService) {
+    console.log('new It005ApiService');
     this.apiConfig = configService.getOrThrow('api');
   }
   async callApi(path: string, body: any, withToken: boolean) {
