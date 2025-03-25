@@ -56,12 +56,13 @@ export class It005ApiService {
       recording,
       allowedip: this.apiConfig.allowedIP,
     };
-    const { status, random } = await this.callApi(
-      'recording/get_random',
-      body,
-      true,
-    );
+    const result = await this.callApi('recording/get_random', body, true);
+
+    const { status, random } = result;
+
     if (status !== 'Success') {
+      console.error('Failed get random', result, body);
+
       throw new Error('Error get random');
     }
 
