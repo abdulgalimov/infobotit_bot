@@ -10,7 +10,6 @@ import {
   Logger,
   UseInterceptors,
   UploadedFile,
-  Res,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -24,13 +23,14 @@ import { OrgService } from './org.service';
 import { CreateOrgDto, ICustomer, InputRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express, Response } from 'express';
+import { Express } from 'express';
 import { FilesService } from './files.service';
 import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
 import { RedisService } from '../redis/redis.service';
 import { validateNotificationTitles } from './validator';
 import { It005ApiService } from '../it005/it005.api';
+import { ApiService } from './api.service';
 
 @ApiTags('Api')
 @Controller('app')
@@ -44,6 +44,7 @@ export class ApiController {
     private readonly customerService: CustomerService,
     private readonly redisService: RedisService,
     private readonly it005ApiService: It005ApiService,
+    private readonly apiService: ApiService,
   ) {}
 
   @Post('orgs')
@@ -148,11 +149,10 @@ export class ApiController {
   @ApiParam({
     name: 'recording',
   })
-  async getDownloadUrl(@Param('recording') recording, @Res() res: Response) {
+  async getDownloadUrl(@Param('recording') recording) {
     try {
       const downloadUrl = await this.it005ApiService.getDownloadUrl(recording);
-      console.log('redirect url', downloadUrl);
-      res.redirect(downloadUrl);
+      return await this.apiService.saveTempFile(downloadUrl);
     } catch (error) {
       console.error('Failed get download url', recording, error);
       return null;
