@@ -10,6 +10,7 @@ import {
   Logger,
   UseInterceptors,
   UploadedFile,
+  Res,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -23,7 +24,7 @@ import { OrgService } from './org.service';
 import { CreateOrgDto, ICustomer, InputRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
+import { Express, Response } from 'express';
 import { FilesService } from './files.service';
 import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
@@ -31,6 +32,7 @@ import { RedisService } from '../redis/redis.service';
 import { validateNotificationTitles } from './validator';
 import { It005ApiService } from '../it005/it005.api';
 import { ApiService } from './api.service';
+import * as fs from 'node:fs';
 
 @ApiTags('Api')
 @Controller('app')
@@ -149,10 +151,26 @@ export class ApiController {
   @ApiParam({
     name: 'recording',
   })
-  async getDownloadUrl(@Param('recording') recording) {
+  async getDownloadUrl(@Param('recording') recording, @Res() res: Response) {
     try {
       const downloadUrl = await this.it005ApiService.getDownloadUrl(recording);
-      return await this.apiService.saveTempFile(downloadUrl);
+      const tempFile = await this.apiService.saveTempFile(downloadUrl);
+
+      console.log('tempFilename', tempFile.name);
+
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${tempFile.name}"`,
+      );
+      res.setHeader('Content-Type', 'application/octet-stream');
+
+      const fileStream = fs.createReadStream(tempFile.name);
+      fileStream.pipe(res);
+
+      fileStream.on('end', () => {
+        tempFile.removeCallback(); // tmp сам удалит файл
+        console.log(`Файл удалён: ${tempFile.name}`);
+      });
     } catch (error) {
       console.error('Failed get download url', recording, error);
       return null;
