@@ -162,7 +162,7 @@ export class ApiController {
         'Content-Disposition',
         `inline; filename="${tempFile.name}"`,
       );
-      res.setHeader('Content-Type', 'audio/wav');
+      res.setHeader('Content-Type', 'audio/mp3');
 
       const fileStream = fs.createReadStream(tempFile.name);
       fileStream.pipe(res);
