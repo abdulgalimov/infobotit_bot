@@ -13,8 +13,6 @@ services:
       - '3002:3002'
     networks:
       - app_net
-    depends_on:
-      - db
     volumes:
       - ./volumes/app/temp:/app/temp
 
