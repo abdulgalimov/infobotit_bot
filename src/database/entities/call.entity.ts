@@ -20,6 +20,9 @@ export class CallEntity implements ICall {
   status: CallStatus;
 
   @Column({ default: null })
+  reserveMobile: string | null;
+
+  @Column({ default: null })
   @Index()
   finishedAt: Date;
 

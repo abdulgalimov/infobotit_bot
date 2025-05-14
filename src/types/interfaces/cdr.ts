@@ -14,4 +14,5 @@ export interface ICdr {
   telegramFileId: string;
   callto1: string;
   callto2: string;
+  reserveMobile: string | null;
 }

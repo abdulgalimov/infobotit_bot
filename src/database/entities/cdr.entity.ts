@@ -61,4 +61,7 @@ export class CdrEntity implements ICdr {
 
   @Column({ default: '' })
   callto2: string;
+
+  @Column({ default: null })
+  reserveMobile: string | null;
 }

@@ -18,40 +18,52 @@ export class CdrService {
     customerId: number,
     type: CallType,
     status: CallStatus,
+    finishStatus: FinishStatus,
+    reserveMobile: string | null,
     body: any,
   ) {
+    const {
+      callduraction,
+      talkduraction,
+      timestart,
+      recording,
+      callto,
+      callfrom,
+      callid,
+    } = body;
+
     const cdr = this.cdrRepository.create();
 
-    const callDuration = +body.callduraction || 0;
-    const talkDuration = +body.talkduraction || 0;
+    const callDuration = +callduraction || 0;
+    const talkDuration = +talkduraction || 0;
 
     cdr.secret = 1_000_000 + Math.floor(Math.random() * 10_000_000);
     cdr.orgId = orgId;
     cdr.customerId = customerId;
     cdr.type = type;
     cdr.status = status;
-    cdr.callId = body.callid;
-    const timeStart = this.getDate(body.timestart);
+    cdr.finishStatus = finishStatus;
+    cdr.callId = callid;
+    const timeStart = this.getDate(timestart);
     cdr.timeStart = timeStart;
     cdr.timeStart = timeStart;
     cdr.waitDuration = callDuration - talkDuration;
     cdr.talkDuration = talkDuration;
-    cdr.recording = body.recording;
+    cdr.recording = recording;
     cdr.createdAt = new Date();
+    cdr.reserveMobile = reserveMobile;
 
-    if (body.type === 'Inbound' && body.callto) {
-      const callto = `${body.callto}`;
+    if (type === 'Inbound' && callto) {
       callToReg.lastIndex = 0;
-      const exec = callToReg.exec(callto);
+      const exec = callToReg.exec(`${callto}`);
       const { callto1, callto2 } = exec.groups;
       cdr.callto1 = callto1;
       cdr.callto2 = callto2;
     }
 
-    if (body.type === 'Outbound' && body.callfrom) {
-      const callfrom = `${body.callfrom}`;
+    if (type === 'Outbound' && callfrom) {
       callToReg.lastIndex = 0;
-      const exec = callToReg.exec(callfrom);
+      const exec = callToReg.exec(`${callfrom}`);
       const { callto1, callto2 } = exec.groups;
       cdr.callto1 = callto1;
       cdr.callto2 = callto2;
@@ -109,6 +121,14 @@ export class CdrService {
     return this.cdrRepository.findOne({
       where: {
         id,
+      },
+    });
+  }
+
+  async findByCallId(callId: string) {
+    return this.cdrRepository.findOne({
+      where: {
+        callId,
       },
     });
   }

@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  Index,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity({ name: 'notifications' })
 @Index(['phone', 'chatId'])
@@ -17,4 +23,7 @@ export class NotificationEntity {
 
   @Column()
   messageId: number;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
 }

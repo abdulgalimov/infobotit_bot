@@ -8,4 +8,5 @@ export interface ICall {
   finishedAt: Date;
   callId: string;
   createdAt: Date;
+  reserveMobile: string | null;
 }

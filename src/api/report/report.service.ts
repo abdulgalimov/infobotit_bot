@@ -71,12 +71,15 @@ export class ReportService {
   }
 
   async newReport(body) {
+    this.redisService.redirectUrls.map((url) => this.redirectTo(url, body));
+
     if (this.localService) return;
 
     let orgTitle: string = null;
     switch (body.event) {
       case 'NewCdr':
         orgTitle = getOrgTitleFromNewCdrEvent(body);
+        if (!orgTitle) return;
         break;
       case 'CallStatus':
         orgTitle = getOrgTitleFromCallStatusEvent(body);
@@ -96,15 +99,13 @@ export class ReportService {
       return;
     }
 
-    if (this.redirects && this.redirects[orgTitle]) {
-      this.redirectTo(this.redirects[orgTitle], body);
-    }
+    // if (this.redirects && this.redirects[orgTitle]) {
+    //   this.redirectTo(this.redirects[orgTitle], body);
+    // }
 
     await this.queueService.add(orgTitle, body);
 
     // await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
-
-    this.redisService.redirectUrls.map((url) => this.redirectTo(url, body));
   }
 
   private async redirectTo(url: string, body) {
@@ -145,7 +146,6 @@ export class ReportService {
       case 'ExtensionStatus':
         return;
     }
-    // console.log('newReport', event);
   }
 
   private async extractOrg(orgSourceName: string): Promise<IOrg> {
@@ -154,7 +154,12 @@ export class ReportService {
   }
 
   async newCrdHandler(body: any) {
-    const { type, dsttrcunkname, srctrunkname, callfrom, callto } = body;
+    const { dsttrcunkname, srctrunkname, callfrom, callto, callid } = body;
+
+    let type = body.type;
+
+    const call = await this.callService.findById(callid);
+
     let orgSourceName: string;
     let userPhone: string;
     switch (type) {
@@ -164,7 +169,17 @@ export class ReportService {
         break;
       case 'Outbound':
         orgSourceName = dsttrcunkname;
-        userPhone = callto;
+        if (call.reserveMobile) {
+          /**
+           * RESERVE MOBILE PHONE!
+           * Если произошел параллельный звонок на резервный номер,
+           * прилетает cdr типом Outbound, надо его поменять на Inbound
+           */
+          type = 'Inbound';
+          userPhone = callfrom;
+        } else {
+          userPhone = callto;
+        }
         break;
       default:
         orgSourceName = '';
@@ -181,19 +196,29 @@ export class ReportService {
       return;
     }
 
-    const [customer, call] = await Promise.all([
-      this.customerService.create(org.id, userPhone),
-      this.callService.findById(body.callid),
-    ]);
+    const customer = await this.customerService.create(org.id, userPhone);
+
     let cdrStatus: CallStatus;
+    let finishStatus: FinishStatus;
     if (call?.status === CallStatus.TALK) {
       cdrStatus = CallStatus.ANSWERED;
+      finishStatus =
+        type === 'Inbound' ? FinishStatus.USER_CALL : FinishStatus.USER_ANSWER;
     } else {
       cdrStatus = CallStatus.NO_ANSWER;
+      finishStatus = FinishStatus.NO_ANSWER;
     }
 
     const [cdr] = await Promise.all([
-      this.cdrService.create(org.id, customer.id, type, cdrStatus, body),
+      this.cdrService.create(
+        org.id,
+        customer.id,
+        type,
+        cdrStatus,
+        finishStatus,
+        call.reserveMobile,
+        body,
+      ),
       this.callService.deleteById(body.callid),
     ]);
 
@@ -243,12 +268,42 @@ export class ReportService {
     if (!body.members.length) return;
 
     const callId: string = body.callid;
+    const cdr = await this.cdrService.findByCallId(callId);
+    if (cdr) {
+      console.debug('Ignore call after create cdr');
+      return;
+    }
+
     const currentCall: CallEntity = await this.callService.findById(callId);
 
-    function findExtStatus(status: string): boolean {
-      return !!body.members.find(
+    let reserveMobile: string | null = null;
+    function findExtStatus(
+      status: string,
+      checkReserveMobile: boolean,
+    ): boolean {
+      const extStatus = !!body.members.find(
         (member) => member.ext?.memberstatus === status,
       );
+      if (extStatus) {
+        return true;
+      }
+
+      if (checkReserveMobile) {
+        /**
+         * RESERVE MOBILE PHONE!
+         *
+         * статус звонка определяется из outbound.memberstatus для Inbound и Buy
+         */
+        const reserveMobileMember = body.members.find(
+          (member) => member.outbound?.memberstatus === status,
+        );
+        if (reserveMobileMember) {
+          reserveMobile = reserveMobileMember.outbound.to;
+        }
+        return !!reserveMobile;
+      }
+
+      return false;
     }
 
     const member = body.members.find(
@@ -282,23 +337,27 @@ export class ReportService {
 
     let status: CallStatus;
     const isFinished =
-      customerInfo.memberstatus === 'BYE' || findExtStatus('BYE');
+      customerInfo.memberstatus === 'BYE' || findExtStatus('BYE', true);
     if (!currentCall) {
       status = CallStatus.ALERT;
     } else if (
       type === CallType.Inbound &&
       customerInfo.memberstatus === 'ANSWERED' &&
-      findExtStatus('ANSWER')
+      findExtStatus('ANSWER', true)
     ) {
       status = CallStatus.TALK;
     } else if (
       type === CallType.Outbound &&
       customerInfo.memberstatus === 'ANSWER' &&
-      findExtStatus('ANSWERED')
+      findExtStatus('ANSWERED', false)
     ) {
       status = CallStatus.TALK;
     } else if (!isFinished) {
       return;
+    }
+
+    if (userPhone) {
+      userPhone = normalizePhone(userPhone);
     }
 
     const customer = await this.customerService.create(org.id, userPhone);
@@ -309,6 +368,7 @@ export class ReportService {
       orgId: org.id,
       customerId: customer.id,
       createdAt: new Date(),
+      reserveMobile,
     };
     if (status) {
       call.status = status;
