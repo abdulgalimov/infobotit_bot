@@ -32,6 +32,8 @@ export function getOrgTitleFromNewCdrEvent(body) {
       return extractOrgTitle(srctrunkname);
     case 'Outbound':
       return extractOrgTitle(dsttrcunkname);
+    // case 'Internal':
+    //   return extractOrgTitle(srctrunkname);
   }
 }
 
@@ -40,9 +42,18 @@ export function getOrgTitleFromCallStatusEvent(body) {
     return;
   }
 
-  const member = body.members.find(
-    (member) => member['inbound'] || member['outbound'],
-  );
+  const memberInbound = body.members.find((member) => member['inbound']);
+  const memberOutbound = body.members.find((member) => member['outbound']);
+
+  /**
+   * RESERVE MOBILE PHONE!
+   * В случае обрыва связи с внутренним номером происходит звонок на мобилку
+   * и тогда в memberInbound лежит номер звонящего клиента
+   * а в memberOutbound лежит резервный номер организации
+   *
+   * В любом другом случае, в массиве body.members может быть либо inbound либо outbound
+   */
+  const member = memberInbound || memberOutbound;
   if (!member) {
     return;
   }
