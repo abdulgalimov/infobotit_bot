@@ -173,16 +173,10 @@ export class NotificationService implements OnApplicationBootstrap {
   private async removeNotification(notification: NotificationEntity) {
     await this.notificationServiceDb.delete(notification.id);
 
-    const time = Date.now() - notification.createdAt.getTime();
-
-    if (time < 10 * 60 * 1000) {
-      try {
-        await this.bot.telegram.deleteMessage(
-          notification.chatId,
-          notification.messageId,
-        );
-      } catch (err) {}
-    }
+    await this.bot.telegram.deleteMessage(
+      notification.chatId,
+      notification.messageId,
+    );
   }
 
   public async findCallsInOrg(ctx, chat: IChat, org: IOrg, phone: string) {
