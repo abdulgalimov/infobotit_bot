@@ -45,7 +45,17 @@ export class CallService {
       },
     });
     if (saved) {
-      await this.callRepository.update({ callId: call.callId }, call);
+      /**
+       * RESERVE MOBILE PHONE!
+       * Если один раз записался reserveMobile,
+       * при обновлении его нельзя перезаписывать
+       * потому что после события с полем reserveMobile может прийти call BUY без reserveMobile
+       */
+      const update = {
+        ...call,
+        reserveMobile: call.reserveMobile || saved.reserveMobile,
+      };
+      await this.callRepository.update({ callId: call.callId }, update);
     } else {
       await this.callRepository.insert(call);
     }
