@@ -218,7 +218,7 @@ export class ReportService {
 
     await this.callService.deleteById(body.callid);
 
-    if (callduraction === '1' && cdrStatus === CallStatus.NO_ANSWER) {
+    if (+callduraction < 2 && cdrStatus === CallStatus.NO_ANSWER) {
       console.log('ignore phantom call', body);
       return;
     }
