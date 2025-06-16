@@ -160,14 +160,8 @@ export class ReportService {
       callfrom,
       callto,
       callid,
-      callduration,
-      status,
+      callduraction,
     } = body;
-
-    if (callduration === '1' && status === CallStatus.NO_ANSWER) {
-      console.log('ignore phantom call', body);
-      return;
-    }
 
     let type = body.type;
 
@@ -222,18 +216,22 @@ export class ReportService {
       finishStatus = FinishStatus.NO_ANSWER;
     }
 
-    const [cdr] = await Promise.all([
-      this.cdrService.create(
-        org.id,
-        customer.id,
-        type,
-        cdrStatus,
-        finishStatus,
-        call.reserveMobile,
-        body,
-      ),
-      this.callService.deleteById(body.callid),
-    ]);
+    await this.callService.deleteById(body.callid);
+
+    if (callduraction === '1' && cdrStatus === CallStatus.NO_ANSWER) {
+      console.log('ignore phantom call', body);
+      return;
+    }
+
+    const cdr = await this.cdrService.create(
+      org.id,
+      customer.id,
+      type,
+      cdrStatus,
+      finishStatus,
+      call.reserveMobile,
+      body,
+    );
 
     if (cdr.status === CallStatus.NO_ANSWER) {
       if (type === CallType.Inbound) {
