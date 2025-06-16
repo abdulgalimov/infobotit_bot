@@ -154,7 +154,20 @@ export class ReportService {
   }
 
   async newCrdHandler(body: any) {
-    const { dsttrcunkname, srctrunkname, callfrom, callto, callid } = body;
+    const {
+      dsttrcunkname,
+      srctrunkname,
+      callfrom,
+      callto,
+      callid,
+      callduration,
+      status,
+    } = body;
+
+    if (callduration === '1' && status === CallStatus.NO_ANSWER) {
+      console.log('ignore phantom call', body);
+      return;
+    }
 
     let type = body.type;
 
