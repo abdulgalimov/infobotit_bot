@@ -218,8 +218,13 @@ export class ReportService {
 
     await this.callService.deleteById(body.callid);
 
-    if (+callduraction < 2 && cdrStatus === CallStatus.NO_ANSWER) {
-      console.log('ignore phantom call', body);
+    const callTime = Date.now() - call.createdAt.getTime();
+    if (callTime < 1000 && cdrStatus === CallStatus.NO_ANSWER) {
+      console.log('ignore phantom call', {
+        now: Date.now(),
+        createdAt: call.createdAt.getTime(),
+        body,
+      });
       return;
     }
 
@@ -378,7 +383,6 @@ export class ReportService {
       type,
       orgId: org.id,
       customerId: customer.id,
-      createdAt: new Date(),
       reserveMobile,
     };
     if (status) {
