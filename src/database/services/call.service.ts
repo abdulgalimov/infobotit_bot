@@ -54,10 +54,14 @@ export class CallService {
       const update = {
         ...call,
         reserveMobile: call.reserveMobile || saved.reserveMobile,
+        createdAt: saved.createdAt,
       };
       await this.callRepository.update({ callId: call.callId }, update);
     } else {
-      await this.callRepository.insert(call);
+      await this.callRepository.insert({
+        ...call,
+        createdAt: new Date(),
+      });
     }
 
     return call;

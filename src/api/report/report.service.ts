@@ -154,7 +154,14 @@ export class ReportService {
   }
 
   async newCrdHandler(body: any) {
-    const { dsttrcunkname, srctrunkname, callfrom, callto, callid } = body;
+    const {
+      dsttrcunkname,
+      srctrunkname,
+      callfrom,
+      callto,
+      callid,
+      callduraction,
+    } = body;
 
     let type = body.type;
 
@@ -209,18 +216,27 @@ export class ReportService {
       finishStatus = FinishStatus.NO_ANSWER;
     }
 
-    const [cdr] = await Promise.all([
-      this.cdrService.create(
-        org.id,
-        customer.id,
-        type,
-        cdrStatus,
-        finishStatus,
-        call.reserveMobile,
+    await this.callService.deleteById(body.callid);
+
+    const callTime = Date.now() - call.createdAt.getTime();
+    if (callTime < 2000 && cdrStatus === CallStatus.NO_ANSWER) {
+      console.log('ignore phantom call', {
+        now: Date.now(),
+        createdAt: call.createdAt.getTime(),
         body,
-      ),
-      this.callService.deleteById(body.callid),
-    ]);
+      });
+      return;
+    }
+
+    const cdr = await this.cdrService.create(
+      org.id,
+      customer.id,
+      type,
+      cdrStatus,
+      finishStatus,
+      call.reserveMobile,
+      body,
+    );
 
     if (cdr.status === CallStatus.NO_ANSWER) {
       if (type === CallType.Inbound) {
@@ -367,7 +383,6 @@ export class ReportService {
       type,
       orgId: org.id,
       customerId: customer.id,
-      createdAt: new Date(),
       reserveMobile,
     };
     if (status) {
