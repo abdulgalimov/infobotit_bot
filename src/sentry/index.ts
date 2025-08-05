@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as Sentry from '@sentry/node';
+import Sentry from '@sentry/node';
 import { SentryInterceptor } from './sentry.interceptor';
 import { SentryLogger } from './sentry.logger';
 import { Config, SentryConfig } from '../config';

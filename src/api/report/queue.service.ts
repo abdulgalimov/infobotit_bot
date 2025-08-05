@@ -1,4 +1,4 @@
-import * as Bull from 'bull';
+import Bull from 'bull';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisConfig } from '../../config';

@@ -32,7 +32,7 @@ import { RedisService } from '../redis/redis.service';
 import { validateNotificationTitles } from './validator';
 import { It005ApiService } from '../it005/it005.api';
 import { ApiService } from './api.service';
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 
 @ApiTags('Api')
 @Controller('app')

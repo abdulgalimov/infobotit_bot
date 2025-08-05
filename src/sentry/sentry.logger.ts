@@ -1,5 +1,5 @@
 import { ConsoleLogger } from '@nestjs/common';
-import * as Sentry from '@sentry/node';
+import Sentry from '@sentry/node';
 import { CaptureContext } from '@sentry/types';
 import { instanceToPlain } from 'class-transformer';
 

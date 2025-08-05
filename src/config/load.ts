@@ -1,9 +1,10 @@
-import * as dotenv from 'dotenv';
-import * as process from 'process';
+import dotenv from 'dotenv';
+import process from 'process';
 import {
   ApiConfig,
   Config,
   DebugConfig,
+  LoggerConfig,
   MonitoringConfig,
   PgConfig,
   RedisConfig,
@@ -120,6 +121,13 @@ function loadTelegramConfig(): TelegramConfig {
   };
 }
 
+function loadLoggerConfig(): LoggerConfig {
+  return {
+    lokiUrl: env['LOKI_URL'],
+    level: env['LOG_LEVEL'],
+  };
+}
+
 export function loadConfig(): Config {
   return {
     telegram: loadTelegramConfig(),
@@ -134,5 +142,6 @@ export function loadConfig(): Config {
     sentry: loadSentryConfig(),
     monitoring: loadMonitoringConfig(),
     redirects: loadRedirectsConfig(),
+    logger: loadLoggerConfig(),
   };
 }

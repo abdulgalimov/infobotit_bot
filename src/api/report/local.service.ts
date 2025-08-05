@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as readline from 'readline';
+import fs from 'fs';
+import readline from 'readline';
 import { ReportService } from './report.service';
 
 export class LocalService {

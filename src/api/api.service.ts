@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import * as tmp from 'tmp';
-import * as fs from 'fs';
+import tmp from 'tmp';
+import fs from 'fs';
 import axios from 'axios';
-import * as ffmpeg from 'fluent-ffmpeg';
+import ffmpeg from 'fluent-ffmpeg';
 import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg';
 
 ffmpeg.setFfmpegPath(ffmpegPath);

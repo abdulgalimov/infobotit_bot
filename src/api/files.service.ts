@@ -1,5 +1,5 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
-import * as fs from 'fs';
+import fs from 'fs';
 import { Express } from 'express';
 
 @Injectable()

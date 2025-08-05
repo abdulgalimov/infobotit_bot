@@ -26,6 +26,7 @@ import { CallEntity } from '../../database/entities/call.entity';
 import { QueueService } from './queue.service';
 import { RedisService } from '../../redis/redis.service';
 import { LocalService } from './local.service';
+import { InfobotLogger } from '../../logger';
 
 @Injectable()
 export class ReportService {
@@ -52,11 +53,15 @@ export class ReportService {
 
   private localService: LocalService;
 
+  private readonly logger: InfobotLogger;
+
   constructor(
     @Inject(ConfigService) configService: ConfigService,
     @Inject(QueueService)
     private queueService: QueueService,
   ) {
+    this.logger = new InfobotLogger(ReportService.name);
+    this.logger.debug('Starting report');
     // fsPromises.writeFile('temp/log.txt', ``);
 
     this.debug = configService.getOrThrow('debug');

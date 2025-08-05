@@ -69,6 +69,20 @@ services:
     networks:
       - app_net
 
+  otel:
+    image: grafana/otel-lgtm
+    container_name: 'infobot-otel'
+    restart: unless-stopped
+    ports:
+      - '3100:3100' # Loki
+      - '3000:3000' # Grafana
+      - '4317:4317' # OTLP gRPC
+      - '4318:4318' # OTLP HTTP
+    volumes:
+      - ./docker/grafana/grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml
+      - ./docker/grafana/dashboards:/otel-lgtm/grafana-dashboards
+    networks:
+      - app_net
 networks:
   app_net:
     driver: bridge

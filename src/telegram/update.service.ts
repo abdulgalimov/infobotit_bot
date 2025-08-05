@@ -8,8 +8,8 @@ import { HeartbeatService } from '../it005/heartbeat.service';
 import { CdrService } from '../database/services/cdr.service';
 import { CustomerService } from '../database/services/customer.service';
 import { RedisService } from '../redis/redis.service';
-import * as process from 'process';
-import * as fs from 'fs/promises';
+import process from 'process';
+import fs from 'fs/promises';
 
 @Update()
 export class UpdateService {

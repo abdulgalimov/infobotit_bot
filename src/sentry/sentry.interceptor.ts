@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { CaptureContext } from '@sentry/types';
-import * as Sentry from '@sentry/node';
+import Sentry from '@sentry/node';
 import { catchError } from 'rxjs/operators';
 import { getExtra } from './utils';
 

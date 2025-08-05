@@ -3,30 +3,34 @@ import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { addSwagger } from './utils/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { ConfigService } from '@nestjs/config';
-import { initSentry } from './sentry';
 import { getBotToken } from 'nestjs-telegraf';
-import { TelegramConfig } from './config';
+import { loadConfig } from './config';
+import { InfobotLogger } from './logger';
 
 async function bootstrap() {
+  const appConfig = loadConfig();
+  const { telegram, port } = appConfig;
+
+  InfobotLogger.initGlobalConfig({
+    appConfig,
+  });
+
+  const logger = new InfobotLogger('main');
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  const config = app.get<ConfigService>(ConfigService);
-  const telegramConfig = config.getOrThrow<TelegramConfig>('telegram');
 
   app.use(json({ limit: '10mb' }));
   app.use(urlencoded({ extended: true, limit: '10mb' }));
 
-  if (telegramConfig.webhook) {
+  if (telegram.webhook) {
     const bot = app.get(getBotToken());
-    app.use(bot.webhookCallback(telegramConfig.webhook.path));
+    app.use(bot.webhookCallback(telegram.webhook.path));
   }
 
-  initSentry(app);
   addSwagger(app);
 
-  const port = config.getOrThrow('port');
   await app.listen(port);
 
-  console.log(`Starting with port ${port}`);
+  logger.debug(`Starting with port ${port}`);
 }
 bootstrap();

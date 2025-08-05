@@ -1,4 +1,4 @@
-import * as express from 'express';
+import express from 'express';
 
 import { DynamicModule, INestApplication, Logger } from '@nestjs/common';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';

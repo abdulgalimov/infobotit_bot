@@ -42,6 +42,11 @@ export interface TelegramConfig {
   };
 }
 
+export interface LoggerConfig {
+  lokiUrl: string;
+  level: string;
+}
+
 export interface Config {
   telegram: TelegramConfig;
   mongoUri: string;
@@ -54,6 +59,7 @@ export interface Config {
   redis: RedisConfig;
   sentry: SentryConfig;
   monitoring: MonitoringConfig;
+  logger: LoggerConfig;
 
   redirects: Record<string, string>;
 }

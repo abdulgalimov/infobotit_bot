@@ -1,7 +1,7 @@
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { Histogram } from 'prom-client';
-import * as responseTime from 'response-time';
+import responseTime from 'response-time';
 
 import { REQUESTS_METRIC } from '../metrics';
 

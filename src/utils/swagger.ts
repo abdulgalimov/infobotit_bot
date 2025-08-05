@@ -1,6 +1,6 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as fs from 'fs';
+import fs from 'fs';
 import { ApiModule } from '../api/api.module';
 
 const runInfoFile = './config/run-info.txt';
