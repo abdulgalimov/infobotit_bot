@@ -9,7 +9,6 @@ export const userMiddleware = (userService: UserService) => {
     return next()
       .then()
       .catch((err) => {
-        console.log(err);
         throw err;
       });
   };

@@ -3,15 +3,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 import { CallStatus, CallType, FinishStatus, ICdr } from '../../types';
 import { CdrEntity } from '../entities/cdr.entity';
+import { InfobotLogger } from '../../logger';
 
 const callToReg = /(?<callto1>[^()]+)(\((?<callto2>.+)\))?/;
 
 @Injectable()
 export class CdrService {
+  private readonly logger: InfobotLogger;
+
   constructor(
     @InjectRepository(CdrEntity)
     private cdrRepository: Repository<CdrEntity>,
-  ) {}
+  ) {
+    this.logger = new InfobotLogger(CdrService.name);
+  }
 
   async create(
     orgId: number,
@@ -71,9 +76,12 @@ export class CdrService {
 
     try {
       await this.cdrRepository.insert(cdr);
-    } catch (err) {
-      console.log('insert error', cdr);
-      throw err;
+    } catch (error) {
+      this.logger.errorCustom('Failed to insert cdr', {
+        error,
+        cdr,
+      });
+      throw error;
     }
 
     return cdr;
@@ -86,8 +94,11 @@ export class CdrService {
       if (isNaN(date.getTime())) {
         throw new Error('Invalid date');
       }
-    } catch (err) {
-      console.log('invalid pare date', dateSource);
+    } catch (error) {
+      this.logger.errorCustom('Failed parse date', {
+        error,
+        dateSource,
+      });
       date = new Date();
     }
     return date;

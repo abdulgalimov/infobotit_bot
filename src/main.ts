@@ -14,8 +14,17 @@ async function bootstrap() {
   InfobotLogger.initGlobalConfig({
     appConfig,
   });
-
   const logger = new InfobotLogger('main');
+
+  process.on('uncaughtException', (reason: Error, origin) => {
+    logger.error(reason, 'Uncaught exception');
+  });
+
+  process.on('unhandledRejection', (reason: string) => {
+    logger.errorCustom('Unhandled rejection', {
+      reason,
+    });
+  });
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 

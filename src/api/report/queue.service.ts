@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { RedisConfig } from '../../config';
 import { Job, Queue, DoneCallback, JobOptions } from 'bull';
 import { OrgService } from '../org.service';
+import { InfobotLogger } from '../../logger';
 
 type Callback = (body: any) => void;
 
@@ -20,12 +21,16 @@ export class QueueService {
   private callback: Callback;
   private redisConfig: RedisConfig;
 
+  private readonly logger: InfobotLogger;
+
   constructor(
     configService: ConfigService,
     @Inject(OrgService)
     private orgService: OrgService,
   ) {
     this.redisConfig = configService.getOrThrow<RedisConfig>('redis');
+
+    this.logger = new InfobotLogger(QueueService.name);
   }
 
   public async init() {
@@ -67,9 +72,12 @@ export class QueueService {
     try {
       await this.callback(job.data);
       done();
-    } catch (err) {
-      console.log('err', err);
-      done(err);
+    } catch (error) {
+      this.logger.errorCustom('Failed proces job', {
+        error,
+        data: job.data,
+      });
+      done(error);
     }
   }
 }

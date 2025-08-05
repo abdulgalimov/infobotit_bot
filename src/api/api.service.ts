@@ -16,13 +16,13 @@ function convertWavToMp3(inputPath, outputPath, logger: InfobotLogger) {
         logger.debug('Convert complete');
         resolve(true);
       })
-      .on('error', (err) => {
+      .on('error', (error) => {
         logger.errorCustom('Convert error', {
-          err,
+          error,
           inputPath,
           outputPath,
         });
-        reject(err);
+        reject(error);
       })
       .save(outputPath);
   });

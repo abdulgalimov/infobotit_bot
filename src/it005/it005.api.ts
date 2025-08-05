@@ -2,15 +2,20 @@ import { Global, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import fetch from 'node-fetch';
 import { ApiConfig } from '../config';
+import { InfobotLogger } from '../logger';
 
 @Global()
 @Injectable()
 export class It005ApiService {
   private readonly apiConfig: ApiConfig;
   private apiToken: string;
+
+  private readonly logger: InfobotLogger;
+
   constructor(@Inject(ConfigService) configService: ConfigService) {
-    console.log('new It005ApiService');
     this.apiConfig = configService.getOrThrow('api');
+
+    this.logger = new InfobotLogger(It005ApiService.name);
   }
   async callApi(path: string, body: any, withToken: boolean) {
     if (withToken && !this.apiToken) {
@@ -28,12 +33,9 @@ export class It005ApiService {
         'content-type': 'application/json',
       },
     };
-    console.log(`[api] call ${path}`);
-    console.log(`body: ${JSON.stringify(body, null, 2)}`);
     return fetch(url, options)
       .then((res) => res.json())
       .then((result) => {
-        console.log(`result: ${JSON.stringify(result, null, 2)}`);
         return result;
       });
   }
@@ -62,8 +64,10 @@ export class It005ApiService {
     const { status, random } = result;
 
     if (status !== 'Success') {
-      console.error('Failed get random', result, body);
-
+      this.logger.errorCustom('Failed to get random', {
+        body,
+        result,
+      });
       throw new Error('Error get random');
     }
 
@@ -77,8 +81,10 @@ export class It005ApiService {
     let result;
     try {
       result = await this.callApi(path, body, true);
-    } catch (err) {
-      console.error('heartbeat error:', err);
+    } catch (error) {
+      this.logger.errorCustom('Heartbeat error', {
+        error,
+      });
     }
     if (result?.status !== 'Success') {
       await this.login();

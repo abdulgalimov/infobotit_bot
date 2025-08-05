@@ -7,7 +7,6 @@ const runInfoFile = './config/run-info.txt';
 const runInfo = fs.existsSync(runInfoFile)
   ? fs.readFileSync(runInfoFile).toString()
   : '';
-console.log('runInfo', runInfo);
 
 export function addSwagger(app: NestExpressApplication) {
   const config = new DocumentBuilder()

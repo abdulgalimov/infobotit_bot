@@ -96,21 +96,16 @@ export class ReportService {
       case 'ExtensionStatus':
         return;
       default:
-        // console.log('Unknown body.event', JSON.stringify(body, null, 2));
         return;
     }
     if (!orgTitle) {
-      console.error('get org fail', JSON.stringify(body, null, 2));
+      this.logger.warn('Fail get org', {
+        body,
+      });
       return;
     }
 
-    // if (this.redirects && this.redirects[orgTitle]) {
-    //   this.redirectTo(this.redirects[orgTitle], body);
-    // }
-
     await this.queueService.add(orgTitle, body);
-
-    // await fsPromises.appendFile('temp/log.txt', `${JSON.stringify(body)}\n`);
   }
 
   private async redirectTo(url: string, body) {

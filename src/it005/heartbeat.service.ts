@@ -11,7 +11,6 @@ export class HeartbeatService {
     private configService: ConfigService,
   ) {
     const debug = configService.getOrThrow<DebugConfig>('debug');
-    console.log('debug', debug);
 
     if (!debug.newServer) {
       setInterval(() => this.ping(), 5 * 60 * 1000);

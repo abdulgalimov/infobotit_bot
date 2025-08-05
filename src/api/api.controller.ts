@@ -6,11 +6,10 @@ import {
   Param,
   Post,
   Request,
-  UseGuards,
-  Logger,
-  UseInterceptors,
-  UploadedFile,
   Res,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -33,11 +32,12 @@ import { validateNotificationTitles } from './validator';
 import { It005ApiService } from '../it005/it005.api';
 import { ApiService } from './api.service';
 import fs from 'node:fs';
+import { InfobotLogger } from '../logger';
 
 @ApiTags('Api')
 @Controller('app')
 export class ApiController {
-  private readonly logger = new Logger('ApiController');
+  private readonly logger: InfobotLogger;
   constructor(
     private readonly reportService: ReportService,
     private readonly orgService: OrgService,
@@ -47,7 +47,9 @@ export class ApiController {
     private readonly redisService: RedisService,
     private readonly it005ApiService: It005ApiService,
     private readonly apiService: ApiService,
-  ) {}
+  ) {
+    this.logger = new InfobotLogger(ApiController.name);
+  }
 
   @Post('orgs')
   @ApiBearerAuth('JWT')
@@ -156,8 +158,6 @@ export class ApiController {
       const downloadUrl = await this.it005ApiService.getDownloadUrl(recording);
       const tempFile = await this.apiService.saveTempFile(downloadUrl);
 
-      console.log('tempFilename', tempFile.name);
-
       res.setHeader(
         'Content-Disposition',
         `inline; filename="${tempFile.name}"`,
@@ -169,10 +169,12 @@ export class ApiController {
 
       fileStream.on('end', () => {
         tempFile.removeCallback(); // tmp сам удалит файл
-        console.log(`Файл удалён: ${tempFile.name}`);
       });
     } catch (error) {
-      console.error('Failed get download url', recording, error);
+      this.logger.errorCustom('Failed get download url', {
+        error,
+        recording,
+      });
       return null;
     }
   }
