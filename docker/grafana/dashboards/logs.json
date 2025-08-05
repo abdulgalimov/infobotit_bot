@@ -57,7 +57,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"trader-bot\", user_id=~\"${id}\", trace_id=~\"${trace_id}\"} | json | line_format \"{{.trace_id}}|{{.job}}:{{.message}}\"",
+          "expr": "{ service_name=\"infobot\", level=~\"${level}\" }  | json | body_callid=~\"${call_id}\" | message=~\"${message}\" | line_format \"{{.body_callid}} | {{.message}}\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -75,8 +75,8 @@
         "allValue": ".*",
         "allowCustomValue": false,
         "current": {
-          "text": "308",
-          "value": "308"
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "loki",
@@ -84,11 +84,11 @@
         },
         "definition": "",
         "includeAll": true,
-        "label": "id",
-        "name": "id",
+        "label": "level",
+        "name": "level",
         "options": [],
         "query": {
-          "label": "user_id",
+          "label": "level",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1
@@ -99,7 +99,7 @@
       },
       {
         "allValue": ".*",
-        "allowCustomValue": false,
+        "allowCustomValue": true,
         "current": {
           "text": "All",
           "value": "$__all"
@@ -110,11 +110,37 @@
         },
         "definition": "",
         "includeAll": true,
-        "label": "trace id",
-        "name": "trace_id",
+        "label": "call_id",
+        "name": "call_id",
         "options": [],
         "query": {
-          "label": "trace_id",
+          "label": "body_callid",
+          "refId": "LokiVariableQueryEditor-VariableQuery",
+          "stream": "",
+          "type": 1
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "allowCustomValue": true,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "definition": "",
+        "includeAll": true,
+        "label": "message",
+        "name": "message",
+        "options": [],
+        "query": {
+          "label": "message",
           "refId": "LokiVariableQueryEditor-VariableQuery",
           "stream": "",
           "type": 1

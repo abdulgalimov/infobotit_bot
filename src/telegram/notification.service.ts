@@ -20,6 +20,7 @@ import { ConfigService } from '@nestjs/config';
 import { DebugConfig } from '../config';
 import { timeout } from '../api/report/utils';
 import { RedisService } from '../redis/redis.service';
+import { InfobotLogger } from '../logger';
 
 @Injectable()
 export class NotificationService implements OnApplicationBootstrap {
@@ -46,12 +47,16 @@ export class NotificationService implements OnApplicationBootstrap {
 
   private notificationTitles: NotificationTitles;
 
+  private readonly logger: InfobotLogger;
+
   constructor(
     @Inject(ConfigService) configService: ConfigService,
     @InjectBot() private bot: Telegraf,
   ) {
     this.debug = configService.getOrThrow('debug');
     this.adminUsers = configService.getOrThrow('adminUsers');
+
+    this.logger = new InfobotLogger(NotificationService.name);
   }
 
   public async onApplicationBootstrap() {
@@ -61,13 +66,11 @@ export class NotificationService implements OnApplicationBootstrap {
         this.bot.telegram.sendMessage(userId, 'Bot restarted'),
       ),
     ]);
-    console.log('notificationTitles', notificationTitles);
 
     this.notificationTitles = notificationTitles;
   }
 
   private getCallto(cdr: ICdr): string | null {
-    console.log('getCallto', cdr.id, cdr.callto1, cdr.callto2);
     if (this.notificationTitles && this.notificationTitles[cdr.orgId]) {
       const notificationTitleOrg = this.notificationTitles[cdr.orgId];
 
@@ -119,7 +122,9 @@ export class NotificationService implements OnApplicationBootstrap {
     }
 
     if (!+org.chatId) {
-      console.error(`Not found chat in org ${org.id}`);
+      this.logger.errorCustom('Not found chat in org', {
+        org,
+      });
       return;
     }
 
@@ -135,11 +140,10 @@ export class NotificationService implements OnApplicationBootstrap {
 
     message.push('#missing');
 
+    const text = message.join('\n');
+
     try {
-      const result = await this.bot.telegram.sendMessage(
-        org.chatId,
-        message.join('\n'),
-      );
+      const result = await this.bot.telegram.sendMessage(org.chatId, text);
 
       await this.notificationServiceDb.create(
         org.id,
@@ -148,8 +152,11 @@ export class NotificationService implements OnApplicationBootstrap {
         result.message_id,
       );
     } catch (error) {
-      console.error('не удалось отправить уведомление в чат');
-      console.error(error);
+      this.logger.errorCustom('Failed send message to chat', {
+        error,
+        chatId: org.chatId,
+        text,
+      });
     }
   }
 
@@ -249,8 +256,12 @@ ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
       let downloadUrl: string;
       try {
         downloadUrl = await this.it005ApiService.getDownloadUrl(cdr.recording);
-      } catch (err) {
-        console.error('Fail load audio from server', err);
+      } catch (error) {
+        this.logger.errorCustom('Failed to load audio from server', {
+          error,
+          recording: cdr.recording,
+        });
+
         return this.bot.telegram.sendMessage(
           chatId,
           `Не удалось загрузить аудио файл: ${cdr.recording}`,
@@ -269,8 +280,13 @@ ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
           },
         );
         sendFileId = result.audio.file_id;
-      } catch (err) {
-        console.error('Fail sent audio to telegram', err);
+      } catch (error) {
+        this.logger.errorCustom('Failed sent audio to telegram', {
+          error,
+          chatId,
+          downloadUrl,
+          caption,
+        });
         return this.bot.telegram.sendMessage(
           chatId,
           `Не удалось отправить аудио файл: ${downloadUrl}`,

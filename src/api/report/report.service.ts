@@ -131,11 +131,13 @@ export class ReportService {
   }
 
   async handleReportSafe(body) {
-    this.logEvents(body);
+    this.logger.debug('handleReportSafe', {
+      body,
+    });
     try {
       await this.handleReport(body);
     } catch (err) {
-      console.log('Fail handle report', JSON.stringify(body, null, 2));
+      this.logger.errorCustom('Fail handle report', { body, err });
       throw err;
     }
   }
@@ -204,7 +206,9 @@ export class ReportService {
 
     const org = await this.extractOrg(orgSourceName);
     if (!org) {
-      console.error(`Org for source name: "${orgSourceName}" not found`);
+      this.logger.errorCustom(`Org for source name not found`, {
+        orgSourceName,
+      });
       return;
     }
 
@@ -225,7 +229,7 @@ export class ReportService {
 
     const callTime = Date.now() - call.createdAt.getTime();
     if (callTime < 2000 && cdrStatus === CallStatus.NO_ANSWER) {
-      console.log('ignore phantom call', {
+      this.logger.warn('ignore phantom call', {
         now: Date.now(),
         createdAt: call.createdAt.getTime(),
         body,
@@ -291,7 +295,9 @@ export class ReportService {
     const callId: string = body.callid;
     const cdr = await this.cdrService.findByCallId(callId);
     if (cdr) {
-      console.debug('Ignore call after create cdr');
+      this.logger.warn('Ignore call after create cdr', {
+        callId,
+      });
       return;
     }
 
@@ -340,7 +346,11 @@ export class ReportService {
     const title = extractOrgTitle(orgSourceName);
     const org = await this.orgService.findByTitle(title);
     if (!org) {
-      console.error(`org ${title} not found`);
+      this.logger.warn(`org not found`, {
+        title,
+        orgSourceName,
+        body,
+      });
       return;
     }
 
@@ -398,16 +408,5 @@ export class ReportService {
     }
 
     await this.callService.create(call);
-  }
-
-  private logEvents(body) {
-    if (!this.redisService.logEnabled) return;
-    const str = JSON.stringify(body, null, 2);
-    if (
-      !this.redisService.logTemplate ||
-      str.toLowerCase().includes(this.redisService.logTemplate.toLowerCase())
-    ) {
-      console.log('event:', str);
-    }
   }
 }

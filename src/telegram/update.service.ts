@@ -10,6 +10,7 @@ import { CustomerService } from '../database/services/customer.service';
 import { RedisService } from '../redis/redis.service';
 import process from 'process';
 import fs from 'fs/promises';
+import { InfobotLogger } from '../logger';
 
 @Update()
 export class UpdateService {
@@ -37,16 +38,22 @@ export class UpdateService {
   @Inject(RedisService)
   private redis: RedisService;
 
+  private readonly logger: InfobotLogger;
+
+  public constructor() {
+    this.logger = new InfobotLogger(UpdateService.name);
+  }
+
   @Command('api_login')
   async apiLogin(@Ctx() ctx) {
-    console.log('api login', ctx.user.isAdmin);
+    this.logger.debug('api login', ctx.user.isAdmin);
     if (!ctx.user.isAdmin) {
       await ctx.reply('Команда доступна только администратору');
       return;
     }
 
     const res = await this.it005ApiService.login();
-    console.log('res', res);
+    this.logger.debug('api login res', { res });
   }
 
   @Command('api_heartbeat')
@@ -74,7 +81,7 @@ export class UpdateService {
       return;
     }
 
-    console.log('restarting...');
+    this.logger.debug('restarting...');
     await ctx.reply('Restarting after 3s ...');
     setTimeout(() => {
       process.exit(0);
@@ -117,12 +124,14 @@ export class UpdateService {
   async findCalls(@Ctx() ctx) {
     const { phone } = ctx.match.groups;
     const chat = ctx.update.message.chat;
-    console.log('findCalls', phone);
     if (!chat) return;
 
     const orgs = await this.orgService.findAllByChat(chat.id);
     if (!orgs.length) {
-      console.error(`orgs not found for chat ${chat.id}`);
+      this.logger.errorCustom(`orgs not found for chat`, {
+        chat,
+        phone,
+      });
       return;
     }
 

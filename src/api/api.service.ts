@@ -4,19 +4,24 @@ import fs from 'fs';
 import axios from 'axios';
 import ffmpeg from 'fluent-ffmpeg';
 import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg';
+import { InfobotLogger } from '../logger';
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-function convertWavToMp3(inputPath, outputPath) {
+function convertWavToMp3(inputPath, outputPath, logger: InfobotLogger) {
   return new Promise((resolve, reject) => {
     ffmpeg(inputPath)
       .toFormat('mp3')
       .on('end', () => {
-        console.log('Конвертация завершена!');
+        logger.debug('Convert complete');
         resolve(true);
       })
       .on('error', (err) => {
-        console.error('Ошибка конвертации:', err);
+        logger.errorCustom('Convert error', {
+          err,
+          inputPath,
+          outputPath,
+        });
         reject(err);
       })
       .save(outputPath);
@@ -25,8 +30,16 @@ function convertWavToMp3(inputPath, outputPath) {
 
 @Injectable()
 export class ApiService {
+  private readonly logger: InfobotLogger;
+
+  public constructor() {
+    this.logger = new InfobotLogger(ApiService.name);
+  }
+
   public async saveTempFile(fileUrl: string) {
-    console.log('saveTempFile', fileUrl);
+    this.logger.debug('Save temp file', {
+      fileUrl,
+    });
     const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
 
     const tempFileWav = tmp.fileSync({
@@ -43,7 +56,7 @@ export class ApiService {
       discardDescriptor: true,
     });
 
-    await convertWavToMp3(tempFileWav.name, tempFileMp3.name);
+    await convertWavToMp3(tempFileWav.name, tempFileMp3.name, this.logger);
 
     tempFileWav.removeCallback();
 
