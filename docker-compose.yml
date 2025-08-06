@@ -22,7 +22,7 @@ services:
     container_name: infobot-postgres
     shm_size: 2g
     ports:
-      - 5434:5432
+      - 5435:5432
     environment:
       POSTGRES_DB: infobot
       POSTGRES_USER: infobot
@@ -37,7 +37,7 @@ services:
     image: grafana/grafana:9.3.6
     container_name: infobot-grafana
     ports:
-      - 3001:3000
+      - 3101:3000
     volumes:
       - grafana:/var/lib/grafana
     networks:
