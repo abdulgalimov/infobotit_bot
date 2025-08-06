@@ -16,8 +16,12 @@ async function bootstrap() {
   });
   const logger = new InfobotLogger('main');
 
-  process.on('uncaughtException', (reason: Error, origin) => {
-    logger.error(reason, 'Uncaught exception');
+  process.on('uncaughtException', (error: Error, origin) => {
+    logger.errorCustom('Uncaught exception', {
+      error,
+      reasonMessage: error.message,
+      origin,
+    });
   });
 
   process.on('unhandledRejection', (reason: string) => {

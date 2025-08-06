@@ -31,8 +31,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 13,
-        "w": 24,
+        "h": 18,
+        "w": 10,
         "x": 0,
         "y": 0
       },
@@ -44,7 +44,7 @@
         "prettifyLogMessage": false,
         "showCommonLabels": false,
         "showLabels": false,
-        "showTime": true,
+        "showTime": false,
         "sortOrder": "Descending",
         "wrapLogMessage": true
       },
@@ -57,12 +57,56 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{ service_name=\"infobot\", level=~\"${level}\" }  | json | body_callid=~\"${call_id}\" | message=~\"${message}\" | line_format \"{{.body_callid}} | {{.message}}\"",
+          "expr": "{ service_name=\"infobot\", level=~\"${level}\" } |~ \"(?i)${search}\" | json | body_callid=~\"${call_id}\" | message=~\"${message}\" | line_format \"{{substr 11 23 .timestamp}} | {{.body_callid}} | {{.message}}\"",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "logs",
+      "title": "Formatted logs",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 18,
+        "w": 14,
+        "x": 10,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": true,
+        "enableLogDetails": false,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{ service_name=\"infobot\", level=~\"${level}\" } |~ \"(?i)${search}\" | json | body_callid=~\"${call_id}\" | message=~\"${message}\" | line_format \"{{__line__}}\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Json logs",
       "type": "logs"
     }
   ],
@@ -148,11 +192,28 @@
         "refresh": 1,
         "regex": "",
         "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "allowCustomValue": true,
+        "current": {},
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "definition": "",
+        "includeAll": true,
+        "label": "Поиск",
+        "name": "search",
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "type": "textbox"
       }
     ]
   },
   "time": {
-    "from": "now-3h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},

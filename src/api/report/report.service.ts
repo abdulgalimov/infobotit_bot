@@ -93,11 +93,22 @@ export class ReportService {
       case 'PlayPromptEnd':
         orgTitle = getOrgTitleFromCallStatusEvent(body);
         break;
-      case 'ExtensionStatus':
-        return;
       default:
+        if (body.event === 'ExtensionStatus') {
+          // ignore ExtensionStatus
+          return;
+        }
+        this.logger.warn(`Unknown event: ${body.event}`, {
+          body,
+        });
         return;
     }
+
+    this.logger.debug(`newReport: ${body.event}`, {
+      orgTitle,
+      body,
+    });
+
     if (!orgTitle) {
       this.logger.warn('Fail get org', {
         body,
@@ -126,14 +137,13 @@ export class ReportService {
   }
 
   async handleReportSafe(body) {
-    this.logger.debug('handleReportSafe', {
+    this.logger.debug(`handleReport: ${body.event || 'unknown'}`, {
       body,
     });
     try {
       await this.handleReport(body);
     } catch (err) {
       this.logger.errorCustom('Fail handle report', { body, err });
-      throw err;
     }
   }
 
@@ -291,7 +301,8 @@ export class ReportService {
     const cdr = await this.cdrService.findByCallId(callId);
     if (cdr) {
       this.logger.warn('Ignore call after create cdr', {
-        callId,
+        body,
+        cdr,
       });
       return;
     }

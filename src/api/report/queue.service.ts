@@ -6,7 +6,7 @@ import { Job, Queue, DoneCallback, JobOptions } from 'bull';
 import { OrgService } from '../org.service';
 import { InfobotLogger } from '../../logger';
 
-type Callback = (body: any) => void;
+type Callback = (body: any) => Promise<void>;
 
 const jobOptions: JobOptions = {
   removeOnComplete: true,
@@ -52,7 +52,14 @@ export class QueueService {
           host: this.redisConfig.host,
         },
       });
-      queue.process(this.process.bind(this));
+      queue.process((job, done) => {
+        this.process(job, done).catch((error) => {
+          this.logger.errorCustom('Failed process job1', {
+            error,
+            data: job.data,
+          });
+        });
+      });
       this.queues[orgTitle] = queue;
     }
     return this.queues[orgTitle];
@@ -73,7 +80,7 @@ export class QueueService {
       await this.callback(job.data);
       done();
     } catch (error) {
-      this.logger.errorCustom('Failed proces job', {
+      this.logger.errorCustom('Failed process job2', {
         error,
         data: job.data,
       });
