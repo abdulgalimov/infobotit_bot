@@ -143,5 +143,6 @@ export function loadConfig(): Config {
     monitoring: loadMonitoringConfig(),
     redirects: loadRedirectsConfig(),
     logger: loadLoggerConfig(),
+    extensionStatusUrl: env['EXTENSION_STATUS_URL'] || null,
   };
 }

@@ -50,6 +50,7 @@ export class ReportService {
 
   private readonly debug: DebugConfig;
   private readonly redirects: RedirectsConfig;
+  private readonly extensionStatusUrl: string | null;
 
   private localService: LocalService;
 
@@ -66,6 +67,7 @@ export class ReportService {
 
     this.debug = configService.getOrThrow('debug');
     this.redirects = configService.get('redirects', null);
+    this.extensionStatusUrl = configService.get('extensionStatusUrl');
 
     if (this.debug.loadFromFile) {
       this.localService = new LocalService(this, this.debug.loadFromFile);
@@ -93,11 +95,10 @@ export class ReportService {
       case 'PlayPromptEnd':
         orgTitle = getOrgTitleFromCallStatusEvent(body);
         break;
+      case 'ExtensionStatus':
+        await this.extensionStatus(body);
+        return;
       default:
-        if (body.event === 'ExtensionStatus') {
-          // ignore ExtensionStatus
-          return;
-        }
         this.logger.warn(`Unknown event: ${body.event}`, {
           body,
         });
@@ -117,6 +118,30 @@ export class ReportService {
     }
 
     await this.queueService.add(orgTitle, body);
+  }
+
+  private async extensionStatus(body) {
+    if (!this.extensionStatusUrl) return;
+
+    try {
+      const response = await fetch(this.extensionStatusUrl, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then((res) => res.text());
+
+      this.logger.debug(`Extension status call response`, {
+        body,
+        response,
+      });
+    } catch (error) {
+      this.logger.errorCustom(`Failed call extension status`, {
+        body,
+        error,
+      });
+    }
   }
 
   private async redirectTo(url: string, body) {
