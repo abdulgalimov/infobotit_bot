@@ -81,7 +81,7 @@ services:
     volumes:
       - ./docker/grafana/grafana-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/grafana-dashboards.yaml
       - ./docker/grafana/dashboards:/otel-lgtm/grafana-dashboards
-      - ./docker/grafana/defaults.init:/otel-lgtm/grafana/conf/defaults.init
+      - ./docker/grafana/defaults.ini:/otel-lgtm/grafana/conf/defaults.ini
     networks:
       - app_net
 
