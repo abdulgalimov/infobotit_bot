@@ -62,4 +62,6 @@ export interface Config {
   logger: LoggerConfig;
 
   redirects: Record<string, string>;
+
+  extensionStatusUrl: string | null;
 }
