@@ -13,7 +13,7 @@ services:
     routes:
       - name: admin-grafana
         preserve_host: true
-        strip_path: false
+        strip_path: true
         paths:
           - /admin-grafana
 
