@@ -83,6 +83,31 @@ services:
       - ./docker/grafana/dashboards:/otel-lgtm/grafana-dashboards
     networks:
       - app_net
+
+  kong:
+    image: kong:3.9.0
+    container_name: kong
+    restart: always
+    environment:
+      - KONG_DATABASE=off
+      - KONG_DECLARATIVE_CONFIG=/etc/kong/kong.yml
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_PROXY_LISTEN=0.0.0.0:80, 0.0.0.0:443 ssl
+      - KONG_SSL_CERT=/etc/kong/certs/itatc.ru.crt
+      - KONG_SSL_CERT_KEY=/etc/kong/certs/itatc.ru.key
+    ports:
+      #      - "8000:8000"  # HTTP-прокси
+      #      - "8443:8443"  # HTTPS-прокси
+      - "8001:8001"  # HTTP API для управления
+      - "8444:8444"  # HTTPS API для управления
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/kong/kong.yml:/etc/kong/kong.yml
+      - ./docker/kong/certs:/etc/kong/certs
+    networks:
+      - app_net
+
 networks:
   app_net:
     driver: bridge

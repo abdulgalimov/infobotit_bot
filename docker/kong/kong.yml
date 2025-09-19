@@ -1,0 +1,38 @@
+_format_version: "3.0"
+
+services:
+  - name: bonus-bot
+    url: http://bonus-bot:3000
+    routes:
+      - name: bonus-bot
+        strip_path: false
+        paths:
+          - /bonus-bot
+  - name: grafana
+    url: http://grafana:3000
+    routes:
+      - name: grafana
+        preserve_host: true
+        strip_path: false
+        paths:
+          - /grafana
+  - name: logviewer
+    url: http://logviewer:8111
+    routes:
+      - name: logviewer
+        strip_path: false
+        preserve_host: true
+        plugins:
+          - name: basic-auth
+        paths:
+          - /logs
+
+consumers:
+  - username: itatc
+    custom_id: itatc
+
+
+basicauth_credentials:
+  - consumer: itatc
+    username: itatc
+    password: a4Q498Vh
