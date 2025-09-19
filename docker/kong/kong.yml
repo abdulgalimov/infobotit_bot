@@ -1,13 +1,13 @@
 _format_version: "3.0"
 
 services:
-  - name: bot
+  - name: app
     url: http://app:3002
     routes:
-      - name: bot
+      - name: app
         strip_path: false
         paths:
-          - /bot
+          - /app
   - name: admin-grafana
     url: http://otel:3000
     routes:
