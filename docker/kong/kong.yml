@@ -1,6 +1,14 @@
 _format_version: "3.0"
 
 services:
+  - name: grafana
+    url: http://172.18.0.1:3101
+    routes:
+      - name: grafana-root
+        strip_path: false
+        preserve_host: true
+        paths:
+          - /
   - name: app
     url: http://app:3002
     routes:
@@ -20,7 +28,6 @@ services:
 consumers:
   - username: itatc
     custom_id: itatc
-
 
 basicauth_credentials:
   - consumer: itatc

@@ -36,6 +36,14 @@ services:
     restart: always
     image: grafana/grafana:9.3.6
     container_name: infobot-grafana
+    environment:
+      - GF_SERVER_ROOT_URL=https://itatc.ru
+      - GF_SERVER_DOMAIN=itatc.ru
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_SECURITY_COOKIE_SAMESITE=none
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SERVER_ENFORCE_DOMAIN=false
     ports:
       - 3101:3000
     volumes:
