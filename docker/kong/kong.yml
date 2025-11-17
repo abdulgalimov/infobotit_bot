@@ -1,0 +1,35 @@
+_format_version: "3.0"
+
+services:
+  - name: grafana
+    url: http://172.18.0.1:3101
+    routes:
+      - name: grafana-root
+        strip_path: false
+        preserve_host: true
+        paths:
+          - /
+  - name: app
+    url: http://app:3002
+    routes:
+      - name: app
+        strip_path: false
+        paths:
+          - /app
+  - name: admin-grafana
+    url: http://otel:3000
+    routes:
+      - name: admin-grafana
+        preserve_host: true
+        strip_path: true
+        paths:
+          - /admin-grafana
+
+consumers:
+  - username: itatc
+    custom_id: itatc
+
+basicauth_credentials:
+  - consumer: itatc
+    username: itatc
+    password: a4Q498Vh
