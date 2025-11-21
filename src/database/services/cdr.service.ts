@@ -54,7 +54,7 @@ export class CdrService {
     cdr.timeStart = timeStart;
     cdr.waitDuration = callDuration - talkDuration;
     cdr.talkDuration = talkDuration;
-    cdr.recording = recording;
+    cdr.recording = this.extractRecordingFilename(recording);
     cdr.createdAt = new Date();
     cdr.reserveMobile = reserveMobile;
 
@@ -102,6 +102,24 @@ export class CdrService {
       date = new Date();
     }
     return date;
+  }
+
+  private extractRecordingFilename(recording: string): string {
+    if (!recording) {
+      return recording;
+    }
+
+    // Если recording содержит URL, извлекаем только имя файла
+    // Примеры:
+    // - https://itatc.ru/app/download-url/20251114102542-1763105132.478760-1055-+79877508906-Outbound.wav
+    // - 20251114102542-1763105132.478760-1055-+79877508906-Outbound.wav
+    if (recording.includes('/download-url/')) {
+      const parts = recording.split('/download-url/');
+      return parts[parts.length - 1];
+    }
+
+    // Если это просто имя файла, возвращаем как есть
+    return recording;
   }
 
   async findLastAnswered(customerId: number) {

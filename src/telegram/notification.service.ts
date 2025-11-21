@@ -143,7 +143,11 @@ export class NotificationService implements OnApplicationBootstrap {
     const text = message.join('\n');
 
     try {
-      const result = await this.bot.telegram.sendMessage(org.chatId, text);
+      const sendOptions: any = {};
+      if (org.messageThreadId) {
+        sendOptions.message_thread_id = org.messageThreadId;
+      }
+      const result = await this.bot.telegram.sendMessage(org.chatId, text, sendOptions);
 
       await this.notificationServiceDb.create(
         org.id,

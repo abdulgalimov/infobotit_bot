@@ -7,6 +7,8 @@ services:
     build:
       context: .
       dockerfile: .docker/Dockerfile
+    env_file:
+      - .docker.env
     environment:
       - IN_DOCKER=true
     ports:
@@ -27,6 +29,18 @@ services:
       POSTGRES_DB: infobot
       POSTGRES_USER: infobot
       POSTGRES_PASSWORD: infobot
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=512MB"
+      - "-c"
+      - "work_mem=16MB"
+      - "-c"
+      - "maintenance_work_mem=128MB"
+      - "-c"
+      - "effective_cache_size=8GB"
+      - "-c"
+      - "max_connections=100"
     volumes:
       - db:/var/lib/postgresql/data
     networks:

@@ -121,9 +121,16 @@ export class ReportService {
   }
 
   private async extensionStatus(body) {
-    if (!this.extensionStatusUrl) return;
+    console.log('[DEBUG] extensionStatus called with:', body);
+    console.log('[DEBUG] extensionStatusUrl:', this.extensionStatusUrl);
+
+    if (!this.extensionStatusUrl) {
+      console.log('[DEBUG] extensionStatusUrl is not set, returning');
+      return;
+    }
 
     try {
+      console.log('[DEBUG] Sending request to:', this.extensionStatusUrl);
       const response = await fetch(this.extensionStatusUrl, {
         method: 'POST',
         body: JSON.stringify(body),
@@ -132,11 +139,13 @@ export class ReportService {
         },
       }).then((res) => res.text());
 
+      console.log('[DEBUG] Response received:', response);
       this.logger.debug(`Extension status call response`, {
         body,
         response,
       });
     } catch (error) {
+      console.error('[DEBUG] Error sending extension status:', error);
       this.logger.errorCustom(`Failed call extension status`, {
         body,
         error,
@@ -258,6 +267,37 @@ export class ReportService {
     await this.callService.deleteById(body.callid);
 
     const callTime = Date.now() - call.createdAt.getTime();
+
+    // Специальная фильтрация для DurumGyros (orgId = 28)
+    // Отсекаем фантомные звонки от Мегафона (код 999) с waitDuration <= 2 секунд
+    if (org.id === 28 && cdrStatus === CallStatus.NO_ANSWER) {
+      const callDuration = +callduraction || 0;
+      const talkDuration = +(body.talkduraction || 0);
+      const waitDuration = callDuration - talkDuration;
+
+      // Проверяем паттерн фантомного звонка Мегафона:
+      // 1. Номер с кодом 999 (Мегафон)
+      // 2. waitDuration <= 2 секунды
+      // 3. Статус NO_ANSWER
+      const isMegafon = userPhone && userPhone.includes('7999');
+      const isPhantomPattern = waitDuration <= 2;
+
+      if (isMegafon && isPhantomPattern) {
+        this.logger.warn('ignore phantom call from Megafon for DurumGyros', {
+          orgId: org.id,
+          orgTitle: org.title,
+          phone: userPhone,
+          waitDuration,
+          talkDuration,
+          callDuration,
+          callTime,
+          body,
+        });
+        return;
+      }
+    }
+
+    // Общая фильтрация для всех организаций
     if (callTime < 2000 && cdrStatus === CallStatus.NO_ANSWER) {
       this.logger.warn('ignore phantom call', {
         now: Date.now(),
