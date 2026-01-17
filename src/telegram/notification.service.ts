@@ -212,8 +212,20 @@ ${orgView(org)}
       },
     );
 
+    // Process calls asynchronously to avoid webhook timeout
+    this.processCalls(chat.id, org, cdrs, customer).catch((error) => {
+      this.logger.errorCustom('Error processing calls', { error, phone, orgId: org.id });
+    });
+  }
+
+  private async processCalls(
+    chatId: number,
+    org: IOrg,
+    cdrs: ICdr[],
+    customer: ICustomer,
+  ) {
     for (const cdr of cdrs) {
-      await this.sendCallToChat(chat.id, org, cdr, customer);
+      await this.sendCallToChat(chatId, org, cdr, customer);
       await timeout(2500);
     }
   }
