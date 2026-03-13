@@ -2,6 +2,12 @@ import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import moment from 'moment';
+import axios from 'axios';
+import tmp from 'tmp';
+import fs from 'fs';
+import ffmpeg from 'fluent-ffmpeg';
+import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg';
+import { Input } from 'telegraf';
 import {
   CallType,
   ICdr,
@@ -21,6 +27,18 @@ import { DebugConfig } from '../config';
 import { timeout } from '../api/report/utils';
 import { RedisService } from '../redis/redis.service';
 import { InfobotLogger } from '../logger';
+
+ffmpeg.setFfmpegPath(ffmpegPath);
+
+function convertWavToMp3(inputPath: string, outputPath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    ffmpeg(inputPath)
+      .toFormat('mp3')
+      .on('end', () => resolve())
+      .on('error', (error) => reject(error))
+      .save(outputPath);
+  });
+}
 
 @Injectable()
 export class NotificationService implements OnApplicationBootstrap {
@@ -68,6 +86,10 @@ export class NotificationService implements OnApplicationBootstrap {
     ]);
 
     this.notificationTitles = notificationTitles;
+  }
+
+  public updateNotificationTitles(titles: NotificationTitles) {
+    this.notificationTitles = titles;
   }
 
   private getCallto(cdr: ICdr): string | null {
@@ -284,13 +306,36 @@ ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
         );
       }
 
+      let mp3Buffer: Buffer;
+      const tempWav = tmp.fileSync({ postfix: '.wav', keep: true, discardDescriptor: true });
+      const tempMp3 = tmp.fileSync({ postfix: '.mp3', keep: true, discardDescriptor: true });
+      try {
+        const response = await axios.get(downloadUrl, {
+          responseType: 'arraybuffer',
+        });
+        fs.writeFileSync(tempWav.name, response.data);
+        await convertWavToMp3(tempWav.name, tempMp3.name);
+        mp3Buffer = fs.readFileSync(tempMp3.name);
+      } catch (error) {
+        this.logger.errorCustom('Failed to download/convert audio file', {
+          error,
+          downloadUrl,
+        });
+        return this.bot.telegram.sendMessage(
+          chatId,
+          `Не удалось скачать аудио файл: ${cdr.recording}`,
+        );
+      } finally {
+        try { tempWav.removeCallback(); } catch {}
+        try { tempMp3.removeCallback(); } catch {}
+      }
+
       let sendFileId: string;
       try {
+        const filename = cdr.recording.replace('.wav', '.mp3') || 'audio.mp3';
         const result = await this.bot.telegram.sendAudio(
           chatId,
-          {
-            url: downloadUrl,
-          },
+          Input.fromBuffer(mp3Buffer, filename),
           {
             caption,
           },
@@ -300,12 +345,11 @@ ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
         this.logger.errorCustom('Failed sent audio to telegram', {
           error,
           chatId,
-          downloadUrl,
           caption,
         });
         return this.bot.telegram.sendMessage(
           chatId,
-          `Не удалось отправить аудио файл: ${downloadUrl}`,
+          `Не удалось отправить аудио файл: ${cdr.recording}`,
         );
       }
 
@@ -315,5 +359,5 @@ ${Icons.Time} ${moment(cdr.timeStart).format('DD.MM.YYYY HH:mm:ss')}`;
 }
 
 function orgView(org: IOrg) {
-  return `${Icons.Org} ${org.title}`;
+  return `${Icons.Org} ${org.displayTitle || org.title}`;
 }
