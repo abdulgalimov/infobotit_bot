@@ -31,6 +31,7 @@ import { RedisService } from '../redis/redis.service';
 import { validateNotificationTitles } from './validator';
 import { It005ApiService } from '../it005/it005.api';
 import { ApiService } from './api.service';
+import { NotificationService } from '../telegram/notification.service';
 import fs from 'node:fs';
 import { InfobotLogger } from '../logger';
 
@@ -47,6 +48,7 @@ export class ApiController {
     private readonly redisService: RedisService,
     private readonly it005ApiService: It005ApiService,
     private readonly apiService: ApiService,
+    private readonly notificationService: NotificationService,
   ) {
     this.logger = new InfobotLogger(ApiController.name);
   }
@@ -364,6 +366,8 @@ export class ApiController {
         error: error.message,
       };
     }
-    return this.redisService.setNotificationTitles(body);
+    await this.redisService.setNotificationTitles(body);
+    this.notificationService.updateNotificationTitles(body as any);
+    return { success: true };
   }
 }

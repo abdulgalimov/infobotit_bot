@@ -40,6 +40,11 @@ services:
         strip_path: false
         paths:
           - /analitic/api
+      - name: atc-analytics-uploads
+        preserve_host: true
+        strip_path: false
+        paths:
+          - /analitic/uploads
     plugins:
       - name: pre-function
         config:

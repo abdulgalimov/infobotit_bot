@@ -3,6 +3,7 @@ export interface IOrg {
   title: string;
   chatId?: number;
   messageThreadId?: number;
+  displayTitle?: string;
 }
 
 export interface IChat {

@@ -120,6 +120,42 @@ export class ReportService {
     await this.queueService.add(orgTitle, body);
   }
 
+  private async sendCallStatus(
+    org: IOrg,
+    type: CallType,
+    status: CallStatus,
+    phone: string,
+    callId: string,
+  ) {
+    if (!this.extensionStatusUrl) return;
+
+    const payload = {
+      event: 'CallStatus',
+      orgId: org.id,
+      orgTitle: org.displayTitle || org.title,
+      type,
+      status,
+      phone,
+      callId,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      console.log('[DEBUG] Sending to extensionStatusUrl:', this.extensionStatusUrl, payload);
+      const response = await fetch(this.extensionStatusUrl, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 3000,
+      }).then(res => res.text());
+
+      console.log('[DEBUG] Call status response:', response);
+      this.logger.debug('Sent call status', { payload });
+    } catch (error) {
+      this.logger.errorCustom('Failed to send call status', { payload, error });
+    }
+  }
+
   private async extensionStatus(body) {
     console.log('[DEBUG] extensionStatus called with:', body);
     console.log('[DEBUG] extensionStatusUrl:', this.extensionStatusUrl);
@@ -460,6 +496,12 @@ export class ReportService {
 
     if (userPhone) {
       userPhone = normalizePhone(userPhone);
+    }
+
+    // Отправляем статус звонка для org 41 (Bani)
+    if (org.id === 41 && status) {
+      console.log('[DEBUG] Sending call status for org 41:', { type, status, userPhone, callId });
+      this.sendCallStatus(org, type, status, userPhone, callId);
     }
 
     const customer = await this.customerService.create(org.id, userPhone);

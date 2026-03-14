@@ -21,4 +21,11 @@ export class OrgEntity {
     default: null,
   })
   messageThreadId: number;
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    default: null,
+  })
+  displayTitle: string;
 }

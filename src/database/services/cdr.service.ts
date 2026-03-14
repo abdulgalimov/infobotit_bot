@@ -123,8 +123,10 @@ export class CdrService {
   }
 
   async findLastAnswered(customerId: number) {
+    // 2 календарных дня назад, полночь по Москве (UTC+3)
     const date = new Date();
-    date.setDate(date.getDate() - 2);
+    date.setUTCHours(-3, 0, 0, 0); // полночь МСК сегодня
+    date.setUTCDate(date.getUTCDate() - 2); // полночь МСК 2 дня назад
 
     return this.cdrRepository.find({
       where: {
