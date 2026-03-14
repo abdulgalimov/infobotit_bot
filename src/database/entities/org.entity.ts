@@ -14,4 +14,18 @@ export class OrgEntity {
   })
   @Index()
   chatId: number;
+
+  @Column({
+    type: 'integer',
+    nullable: true,
+    default: null,
+  })
+  messageThreadId: number;
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    default: null,
+  })
+  displayTitle: string;
 }

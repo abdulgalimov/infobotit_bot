@@ -1,0 +1,77 @@
+_format_version: "3.0"
+
+services:
+  - name: app
+    url: http://app:3002
+    routes:
+      - name: app
+        strip_path: false
+        paths:
+          - /app
+  - name: dashboard-frontend
+    url: http://192.168.2.248:5174
+    routes:
+      - name: dashboard-frontend
+        preserve_host: true
+        strip_path: false
+        paths:
+          - /dashboard
+  - name: dashboard-backend
+    url: http://192.168.2.248:3003/api
+    routes:
+      - name: dashboard-backend
+        preserve_host: true
+        strip_path: true
+        paths:
+          - /backend-api
+  - name: admin-grafana
+    url: http://otel:3000
+    routes:
+      - name: admin-grafana
+        preserve_host: true
+        strip_path: true
+        paths:
+          - /admin-grafana
+  - name: atc-analytics-backend
+    url: http://atc_analytics_backend:8000
+    routes:
+      - name: atc-analytics-backend
+        preserve_host: true
+        strip_path: false
+        paths:
+          - /analitic/api
+      - name: atc-analytics-uploads
+        preserve_host: true
+        strip_path: false
+        paths:
+          - /analitic/uploads
+    plugins:
+      - name: pre-function
+        config:
+          access:
+            - "kong.service.request.set_path(string.gsub(kong.request.get_path(), '^/analitic', ''))"
+  - name: atc-analytics-frontend
+    url: http://atc_analytics_frontend:3001
+    routes:
+      - name: atc-analytics-frontend
+        preserve_host: true
+        strip_path: false
+        paths:
+          - /analitic
+  - name: grafana
+    url: http://grafana:3000
+    routes:
+      - name: grafana-root
+        strip_path: false
+        preserve_host: true
+        paths:
+          - /
+
+consumers:
+  - username: itatc
+    custom_id: itatc
+
+basicauth_credentials:
+  - consumer: itatc
+    username: itatc
+    password: a4Q498Vh

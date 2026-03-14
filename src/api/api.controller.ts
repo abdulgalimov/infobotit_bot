@@ -31,6 +31,7 @@ import { RedisService } from '../redis/redis.service';
 import { validateNotificationTitles } from './validator';
 import { It005ApiService } from '../it005/it005.api';
 import { ApiService } from './api.service';
+import { NotificationService } from '../telegram/notification.service';
 import fs from 'node:fs';
 import { InfobotLogger } from '../logger';
 
@@ -47,6 +48,7 @@ export class ApiController {
     private readonly redisService: RedisService,
     private readonly it005ApiService: It005ApiService,
     private readonly apiService: ApiService,
+    private readonly notificationService: NotificationService,
   ) {
     this.logger = new InfobotLogger(ApiController.name);
   }
@@ -149,6 +151,149 @@ export class ApiController {
     return this.redisService.getNotificationTitles();
   }
 
+  @Get('player/:recording')
+  @ApiParam({
+    name: 'recording',
+  })
+  async getPlayer(@Param('recording') recording, @Res() res: Response) {
+    const audioUrl = `/app/download-url/${recording}`;
+    const html = `
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Аудио плеер - ${recording}</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .player-container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 24px;
+      text-align: center;
+    }
+    .filename {
+      color: #666;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 30px;
+      word-break: break-all;
+    }
+    audio {
+      width: 100%;
+      outline: none;
+      border-radius: 10px;
+    }
+    audio::-webkit-media-controls-panel {
+      background: linear-gradient(to right, #667eea, #764ba2);
+    }
+    .download-btn {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="player-container">
+    <h1>🎵 Аудио запись звонка</h1>
+    <div class="filename">${recording}</div>
+    <audio controls autoplay preload="auto">
+      <source src="${audioUrl}" type="audio/mpeg">
+      Ваш браузер не поддерживает аудио элемент.
+    </audio>
+    <a href="${audioUrl}" download="${recording}" class="download-btn">
+      ⬇️ Скачать запись
+    </a>
+  </div>
+</body>
+</html>
+    `;
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  }
+
+  @Get('player-embed/:recording')
+  @ApiParam({
+    name: 'recording',
+  })
+  async getPlayerEmbed(@Param('recording') recording, @Res() res: Response) {
+    const audioUrl = `/app/download-url/${recording}`;
+    const html = `
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: transparent;
+      padding: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    audio {
+      width: 100%;
+      outline: none;
+    }
+    .info {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 8px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">🎵 ${recording}</div>
+  <audio controls autoplay preload="auto">
+    <source src="${audioUrl}" type="audio/mpeg">
+  </audio>
+</body>
+</html>
+    `;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.send(html);
+  }
+
   @Get('download-url/:recording')
   @ApiParam({
     name: 'recording',
@@ -221,6 +366,8 @@ export class ApiController {
         error: error.message,
       };
     }
-    return this.redisService.setNotificationTitles(body);
+    await this.redisService.setNotificationTitles(body);
+    this.notificationService.updateNotificationTitles(body as any);
+    return { success: true };
   }
 }
